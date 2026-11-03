@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { depositStatus, startDeposit } from "./pawapay.server";
+import { activeProviders, depositStatus, startDeposit } from "./pawapay.server";
 
 export const pawaPayDeposit = createServerFn({ method: "POST" })
   .inputValidator((d) =>
@@ -26,3 +26,14 @@ export const pawaPayDeposit = createServerFn({ method: "POST" })
 export const pawaPayDepositStatus = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => depositStatus(data.id));
+
+/** Live networks (with pawaPay's real logos) enabled on this account for a country. */
+export const pawaPayNetworks = createServerFn({ method: "GET" })
+  .inputValidator((d) => z.object({ iso3: z.string().length(3) }).parse(d))
+  .handler(async ({ data }) => {
+    try {
+      return await activeProviders(data.iso3.toUpperCase());
+    } catch {
+      return null;
+    }
+  });

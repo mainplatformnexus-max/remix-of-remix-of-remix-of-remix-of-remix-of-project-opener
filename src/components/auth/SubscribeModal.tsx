@@ -45,6 +45,7 @@ import { PaymentFailedModal } from "@/components/auth/PaymentFailedModal";
 import { useMomoNetwork } from "@/hooks/usePawaPredict";
 import { MomoPayButton, momoFailState } from "@/components/auth/MomoPayButton";
 import { detectVisitorGeo } from "@/lib/geo.functions";
+import { pawaPayNetworks } from "@/lib/pawapay.functions";
 import { PayPalButtons } from "@/components/auth/PayPalButtons";
 import { ApplePayLogo, CardLogo, GooglePayLogo, MobileMoneyLogo, PayPalLogo } from "@/components/auth/PaymentLogos";
 
@@ -98,7 +99,13 @@ export function SubscribeModal({
   const geo = geoQ.data?.geo ?? null;
   const ipCode = geo?.code ?? "UG";
   const country = resolveCountry(ipCode, geo, geoQ.data?.rates ?? null);
-  const liveNets = null as { logo: string; provider: string; displayName: string }[] | null;
+  const netsQ = useQuery({
+    queryKey: ["pawapay-networks", country.iso3 ?? ""],
+    queryFn: () => pawaPayNetworks({ data: { iso3: country.iso3! } }),
+    enabled: !!country.iso3,
+    staleTime: 600_000,
+  });
+  const liveNets: { logo: string; provider: string; displayName: string }[] | null = country.iso3 ? (netsQ.data ?? null) : [];
   // Mobile money only where this PawaPay account has live networks (falls back to the local list if PawaPay is unreachable).
   const momo = hasMobileMoney(country.code) && (liveNets === null || liveNets.length > 0);
   const methods = METHODS.filter((m) => momo || m.id !== "mobile_money");

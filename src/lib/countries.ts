@@ -31,16 +31,16 @@ export const COUNTRIES: CountryInfo[] = [
   { code: "UG", iso3: "UGA", name: "Uganda", short: "UG", flag: "🇺🇬", currency: "UGX", rate: 1, step: 500, dial: "256", localLength: 9, min: 500, max: 5000000, providers: ["MTN MoMo", "Airtel Money"] },
   { code: "KE", iso3: "KEN", name: "Kenya", short: "KE", flag: "🇰🇪", currency: "KES", rate: 0.0351, step: 10, dial: "254", localLength: 9, min: 10, max: 250000, providers: ["M-Pesa"] },
   { code: "RW", iso3: "RWA", name: "Rwanda", short: "RW", flag: "🇷🇼", currency: "RWF", rate: 0.378, step: 100, dial: "250", localLength: 9, min: 100, max: 5000000, providers: ["MTN MoMo", "Airtel Money"] },
-  { code: "CD", iso3: "COD", name: "DR Congo", short: "CD", flag: "🇨🇩", currency: "CDF", rate: 0.77, step: 500, dial: "243", localLength: 9, min: 500, max: 5000000, providers: ["Vodacom M-Pesa", "Airtel Money", "Orange Money"] },
-  { code: "ZM", iso3: "ZMB", name: "Zambia", short: "ZM", flag: "🇿🇲", currency: "ZMW", rate: 0.0072, step: 1, dial: "260", localLength: 9, min: 1, max: 100000, providers: ["MTN MoMo", "Airtel Money", "Zamtel"] },
-  { code: "MZ", iso3: "MOZ", name: "Mozambique", short: "MZ", flag: "🇲🇿", currency: "MZN", rate: 0.0173, step: 10, dial: "258", localLength: 9, min: 10, max: 500000, providers: ["M-Pesa", "e-Mola"] },
-  { code: "CM", iso3: "CMR", name: "Cameroon", short: "CM", flag: "🇨🇲", currency: "XAF", rate: 0.16, step: 100, dial: "237", localLength: 9, min: 100, max: 2000000, providers: ["MTN MoMo", "Orange Money"] },
-  { code: "GA", iso3: "GAB", name: "Gabon", short: "GA", flag: "🇬🇦", currency: "XAF", rate: 0.16, step: 100, dial: "241", localLength: 8, min: 100, max: 2000000, providers: ["Airtel Money"] },
+  { code: "CD", iso3: "COD", name: "DR Congo", short: "CD", flag: "🇨🇩", currency: "CDF", rate: 0.77, step: 500, dial: "243", localLength: 9, min: 500, max: 1000000, providers: ["Vodacom M-Pesa", "Airtel Money", "Orange Money"] },
+  { code: "ZM", iso3: "ZMB", name: "Zambia", short: "ZM", flag: "🇿🇲", currency: "ZMW", rate: 0.0072, step: 1, dial: "260", localLength: 9, min: 1, max: 20000, providers: ["MTN MoMo", "Airtel Money", "Zamtel"] },
+  { code: "MZ", iso3: "MOZ", name: "Mozambique", short: "MZ", flag: "🇲🇿", currency: "MZN", rate: 0.0173, step: 10, dial: "258", localLength: 9, min: 1, max: 125000, providers: ["Vodacom M-Pesa"] },
+  { code: "CM", iso3: "CMR", name: "Cameroon", short: "CM", flag: "🇨🇲", currency: "XAF", rate: 0.16, step: 100, dial: "237", localLength: 9, min: 100, max: 1000000, providers: ["MTN MoMo"] },
+  { code: "GA", iso3: "GAB", name: "Gabon", short: "GA", flag: "🇬🇦", currency: "XAF", rate: 0.16, step: 100, dial: "241", localLength: 8, min: 100, max: 500000, providers: ["Airtel Money"] },
   { code: "CG", iso3: "COG", name: "Republic of the Congo", short: "CG", flag: "🇨🇬", currency: "XAF", rate: 0.16, step: 100, dial: "242", localLength: 9, min: 100, max: 2000000, providers: ["MTN MoMo", "Airtel Money"] },
   { code: "BJ", iso3: "BEN", name: "Benin", short: "BJ", flag: "🇧🇯", currency: "XOF", rate: 0.16, step: 100, dial: "229", localLength: 10, min: 100, max: 2000000, providers: ["MTN MoMo", "Moov Money"] },
-  { code: "CI", iso3: "CIV", name: "Côte d'Ivoire", short: "CI", flag: "🇨🇮", currency: "XOF", rate: 0.16, step: 100, dial: "225", localLength: 10, min: 100, max: 2000000, providers: ["MTN MoMo", "Orange Money", "Wave"] },
-  { code: "SN", iso3: "SEN", name: "Senegal", short: "SN", flag: "🇸🇳", currency: "XOF", rate: 0.16, step: 100, dial: "221", localLength: 9, min: 100, max: 2000000, providers: ["Orange Money", "Free Money", "Wave"] },
-  { code: "SL", iso3: "SLE", name: "Sierra Leone", short: "SL", flag: "🇸🇱", currency: "SLE", rate: 0.0061, step: 1, dial: "232", localLength: 8, min: 1, max: 100000, providers: ["Orange Money", "Africell Money"] },
+  { code: "CI", iso3: "CIV", name: "Côte d'Ivoire", short: "CI", flag: "🇨🇮", currency: "XOF", rate: 0.16, step: 100, dial: "225", localLength: 10, min: 100, max: 2000000, providers: ["MTN MoMo", "Orange Money", "Moov Money"] },
+  { code: "SN", iso3: "SEN", name: "Senegal", short: "SN", flag: "🇸🇳", currency: "XOF", rate: 0.16, step: 100, dial: "221", localLength: 9, min: 100, max: 2000000, providers: ["Orange Money", "Free Money"] },
+  { code: "SL", iso3: "SLE", name: "Sierra Leone", short: "SL", flag: "🇸🇱", currency: "SLE", rate: 0.0061, step: 1, dial: "232", localLength: 8, min: 1, max: 15000, providers: ["Orange Money"] },
 ];
 
 export const DEFAULT_COUNTRY = COUNTRIES[0]!;
@@ -168,13 +168,9 @@ const PROVIDER_PREFIXES: Record<string, ProviderRule[]> = {
     { name: "Airtel Money", prefixes: ["70", "75", "97"] },
     { name: "Zamtel", prefixes: ["95", "96"] },
   ],
-  MZ: [
-    { name: "M-Pesa", prefixes: ["84", "85"] },
-    { name: "e-Mola", prefixes: ["86", "87"] },
-  ],
+  MZ: [{ name: "Vodacom M-Pesa", prefixes: ["84", "85"] }],
   CM: [
     { name: "MTN MoMo", prefixes: ["67", "650", "651", "652", "653", "654"] },
-    { name: "Orange Money", prefixes: ["69", "655", "656", "657", "658", "659"] },
   ],
   GA: [{ name: "Airtel Money", prefixes: ["07", "66"] }],
   CG: [
@@ -193,11 +189,9 @@ const PROVIDER_PREFIXES: Record<string, ProviderRule[]> = {
   SN: [
     { name: "Orange Money", prefixes: ["77", "78"] },
     { name: "Free Money", prefixes: ["76"] },
-    { name: "Wave", prefixes: ["70", "75"] },
   ],
   SL: [
     { name: "Orange Money", prefixes: ["74", "75", "30"] },
-    { name: "Africell Money", prefixes: ["77", "88"] },
   ],
   CD: [
     { name: "Vodacom M-Pesa", prefixes: ["81", "82", "83"] },
