@@ -1,3 +1,4 @@
+import { paymentKey } from "./payment-keys.server";
 /**
  * Server-side PayPal (live) helper. The client ID is public; the secret is
  * read from the private PAYPAL_CLIENT_SECRET value inside each call so it is
@@ -15,7 +16,7 @@ const SUPPORTED = new Set([
 const ZERO_DECIMAL = new Set(["JPY"]);
 
 async function token() {
-  const secret = process.env["PAYPAL_CLIENT_SECRET"];
+  const secret = paymentKey("PAYPAL_CLIENT_SECRET");
   if (!secret) throw new Error("PayPal is not configured yet.");
   const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
     method: "POST",
