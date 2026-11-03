@@ -41,29 +41,27 @@ export function ApplePayLogo() {
   );
 }
 
+const MOMO_LOGOS: Array<[string, string]> = [
+  ["vodacom", "https://static-content.pawapay.io/provider_logos/vodacom.png"],
+  ["m-pesa", "https://static-content.pawapay.io/provider_logos/mpesa.png"],
+  ["mtn", "https://static-content.pawapay.io/provider_logos/mtn.png"],
+  ["airtel", "https://static-content.pawapay.io/provider_logos/airtel.png"],
+  ["orange", "https://static-content.pawapay.io/provider_logos/orange.png"],
+  ["free", "https://static-content.pawapay.io/provider_logos/free.png"],
+  ["moov", "https://static-content.pawapay.io/provider_logos/moov.png"],
+  ["zamtel", "https://static-content.pawapay.io/provider_logos/zamtel.png"],
+];
+
+/** Real network logos (same ones the mobile money pay button shows). */
 export function MobileMoneyLogo({ providers }: { providers: string[] }) {
-  const colors: Record<string, [string, string, string]> = {
-    mtn: ["#FFCC00", "#004F71", "MTN"],
-    airtel: ["#E40000", "#FFFFFF", "airtel"],
-    "m-pesa": ["#4CAF50", "#FFFFFF", "M-PESA"],
-    vodacom: ["#E60000", "#FFFFFF", "Voda"],
-    orange: ["#FF7900", "#000000", "orange"],
-    tigo: ["#00377B", "#FFFFFF", "tigo"],
-  };
-  const marks = providers
-    .map((p) => Object.entries(colors).find(([k]) => p.toLowerCase().includes(k))?.[1])
-    .filter(Boolean)
-    .slice(0, 2) as Array<[string, string, string]>;
+  const logos = providers
+    .map((p) => ({ p, src: MOMO_LOGOS.find(([k]) => p.toLowerCase().includes(k))?.[1] }))
+    .filter((x): x is { p: string; src: string } => !!x.src)
+    .slice(0, 3);
   return (
-    <span className="flex items-center gap-[3px]">
-      {marks.map(([bg, fg, label]) => (
-        <span
-          key={label}
-          style={{ background: bg, color: fg }}
-          className="rounded-[4px] px-[4px] py-[2px] text-[8.5px] font-black leading-none tracking-tight"
-        >
-          {label}
-        </span>
+    <span className="flex items-center gap-1">
+      {logos.map(({ p, src }) => (
+        <img key={p} src={src} alt={p} className="h-5 w-auto max-w-[32px] object-contain sm:h-6 sm:max-w-[44px]" />
       ))}
     </span>
   );
