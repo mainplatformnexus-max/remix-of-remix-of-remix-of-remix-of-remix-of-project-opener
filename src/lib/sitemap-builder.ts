@@ -102,7 +102,8 @@ export function urlset(entries: UrlEntry[]) {
       video = images[0] ? { ...video, thumb: images[0].loc } : undefined;
     }
     if (video && (!video.title?.trim() || !video.description?.trim())) video = undefined;
-    return { ...e, images, video };
+    const { video: _v, ...rest } = e;
+    return video ? { ...rest, images, video } : { ...rest, images };
   });
   const body = entries
     .map((e) => {
