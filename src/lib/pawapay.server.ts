@@ -64,7 +64,7 @@ export async function resolveProvider(phone: string, chosen?: string): Promise<{
   return predictProvider(digits);
 }
 
-export async function startDeposit(input: { phone: string; amount: number; currency: string; reference: string; description?: string; provider?: string }) {
+export async function startDeposit(input: { phone: string; amount: number; currency: string; reference: string; description?: string | undefined; provider?: string | undefined }) {
   const { provider, phoneNumber } = await resolveProvider(input.phone, input.provider);
   const depositId = crypto.randomUUID();
   const r = await call("POST", "/v2/deposits", {
