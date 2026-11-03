@@ -82,7 +82,7 @@ export async function createWhopCheckout(input: {
     console.warn("Whop rejected local currency", localCurrency, error);
     const { usdRate } = await import("./geo.server");
     const perUsd = await usdRate(localCurrency);
-    session = await open("usd", Math.max(0.5, Math.round((localPrice / perUsd) * 100) / 100));
+    session = await open("usd", Math.max(1, Math.round((localPrice / perUsd) * 100) / 100));
   }
   if (!session?.id) throw new Error("The card payment service did not start the checkout.");
   return session;
