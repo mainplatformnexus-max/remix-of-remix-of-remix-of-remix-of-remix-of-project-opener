@@ -1,74 +1,99 @@
-import { useState } from "react";
-import { WhopCheckoutEmbed, WhopExpressCheckoutButton } from "@whop/checkout/react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CardLogo } from "@/components/auth/PaymentLogos";
+import { checkWhopPayment } from "@/lib/whop.functions";
 
 /**
- * Whop's real one-click pay button. Clicking it opens Whop's floating payment
- * window on top of the page (no new tab). If Whop can't show its express
- * button for this buyer, a plain card button opens Whop's checkout in a
- * floating window instead.
+ * Whop card payment. Whop's embedded/express checkout refuses this account
+ * ("This checkout is no longer available"), while Whop's own hosted checkout
+ * works — so the pay button opens that real Whop checkout in a floating
+ * window on top of the page (no new tab). While it is open we ask Whop every
+ * few seconds whether the transaction was paid.
  */
 export default function WhopEmbed({
   sessionId,
+  txId,
   onDone,
-  email,
 }: {
   sessionId: string;
+  txId?: string | undefined;
   email?: string | undefined;
   onDone?: () => void;
 }) {
-  const [noExpress, setNoExpress] = useState(false);
   const [open, setOpen] = useState(false);
-  const prefill = { email: email ?? "" };
-  const returnUrl = typeof window !== "undefined" ? window.location.href : "https://luofilm.site";
+  const [loaded, setLoaded] = useState(false);
+  const url = sessionId.startsWith("http") ? sessionId : `https://whop.com/checkout/${sessionId}/`;
+
+  useEffect(() => {
+    if (!open || !txId) return;
+    let stop = false;
+    const t = setInterval(async () => {
+      try {
+        const r = await checkWhopPayment({ data: { txId } });
+        if (!stop && r.paid) {
+          stop = true;
+          setOpen(false);
+          onDone?.();
+        }
+      } catch {
+        /* keep waiting */
+      }
+    }, 4000);
+    return () => {
+      stop = true;
+      clearInterval(t);
+    };
+  }, [open, txId, onDone]);
 
   return (
     <>
-      {!noExpress && (
-        <WhopExpressCheckoutButton
-          checkoutConfigurationId={sessionId}
-          methods={["whop-pay"]}
-          {...(email ? { prefill } : {})}
-          returnUrl={returnUrl}
-          theme="light"
-          skipRedirect
-          onComplete={() => onDone?.()}
-          onExpressMethodResolved={({ rendered }) => {
-            if (rendered === "none") setNoExpress(true);
-          }}
-          fallback={
-            <div className="grid h-11 place-items-center">
-              <Loader2 className="size-5 animate-spin opacity-60" />
-            </div>
-          }
-        />
-      )}
-      {noExpress && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="flex h-11 w-full items-center justify-center rounded-full bg-foreground text-[14px] font-bold text-background transition hover:opacity-90"
+      <button
+        type="button"
+        onClick={() => {
+          setLoaded(false);
+          setOpen(true);
+        }}
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[14px] font-bold text-background transition hover:opacity-90"
+      >
+        <CardLogo /> Pay with card · Whop
+      </button>
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          setOpen(v);
+          if (!v) onDone?.();
+        }}
+      >
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          className="h-[min(88vh,760px)] w-[calc(100vw-1rem)] max-w-[460px] overflow-hidden p-0 [&>button]:hidden"
         >
-          Pay with card · Whop
-        </button>
-      )}
-      <Dialog open={open} onOpenChange={setOpen} modal={false}>
-        <DialogContent onInteractOutside={(e) => e.preventDefault()} className="max-h-[90vh] w-[calc(100vw-1.5rem)] max-w-[420px] overflow-y-auto p-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Pay with card</DialogTitle>
           </DialogHeader>
-          <WhopCheckoutEmbed
-            sessionId={sessionId}
-            {...(email ? { prefill } : {})}
-            theme="light"
-            skipRedirect
-            returnUrl={returnUrl}
-            onComplete={() => {
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={() => {
               setOpen(false);
               onDone?.();
             }}
-            fallback={<div className="p-6 text-center text-xs opacity-60">Loading secure payment…</div>}
+            className="absolute right-2 top-2 z-10 grid size-8 place-items-center rounded-full bg-background/90 text-foreground shadow"
+          >
+            <X className="size-4" />
+          </button>
+          {!loaded && (
+            <div className="absolute inset-0 grid place-items-center">
+              <Loader2 className="size-6 animate-spin opacity-60" />
+            </div>
+          )}
+          <iframe
+            title="Whop secure checkout"
+            src={url}
+            onLoad={() => setLoaded(true)}
+            allow="payment *; publickey-credentials-get *"
+            className="h-full w-full border-0"
           />
         </DialogContent>
       </Dialog>

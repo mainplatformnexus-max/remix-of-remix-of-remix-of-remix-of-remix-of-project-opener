@@ -703,6 +703,7 @@ export function SubscribeModal({
                   <div>
                     <WhopEmbed
                       sessionId={cardSession}
+                      txId={liveTx.current?.id ? String(liveTx.current.id) : undefined}
                       email={user?.email ?? undefined}
                       onDone={() => {
                         setPhase("waiting");
