@@ -100,7 +100,7 @@ export type WhopPayment = {
 /** Lists recent payments so we can find the one for a transaction. */
 export async function listWhopPayments(): Promise<WhopPayment[]> {
   const res = await whopCall<{ data?: WhopPayment[] }>(
-    `/payments?company_id=${paymentKey("WHOP_COMPANY_ID") ?? ""}&first=50`,
+    `/payments?account_id=${paymentKey("WHOP_COMPANY_ID") ?? ""}&first=50`,
   );
   return Array.isArray(res?.data) ? res.data : [];
 }
