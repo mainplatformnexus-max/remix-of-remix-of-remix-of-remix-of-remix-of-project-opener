@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Add Narabox/MovieBox admin latest selections with VJ/ENG tags on home.
+- [ ] Add real browser app installation and fit the floating header on phones.
+
 - [x] Switch all payments and keepalive requests to payment.nexusplatformafrica.workers.dev.
 - [ ] Connect the supplied Deno relay and verify real MovieBox file delivery.
 - [ ] Fix MovieBox playback failing on deployed sites; verify real movie and episode media delivery and player requests.
