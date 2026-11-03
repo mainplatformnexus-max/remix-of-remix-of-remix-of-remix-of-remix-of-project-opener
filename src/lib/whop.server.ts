@@ -6,7 +6,7 @@ import { paymentKey } from "./payment-keys.server";
 
 const WHOP_API = "https://api.whop.com/api/v1";
 
-type WhopError = { message?: string; error?: string };
+type WhopError = { message?: string };
 
 async function whopCall<T>(path: string, init?: RequestInit): Promise<T> {
   const key = process.env["WHOP_API_KEY_V2"] || paymentKey("WHOP_API_KEY");
@@ -27,8 +27,9 @@ async function whopCall<T>(path: string, init?: RequestInit): Promise<T> {
     payload = { message: text };
   }
   if (!res.ok) {
-    const p = payload as WhopError;
-    throw new Error(p.message ?? p.error ?? `Card payment service error (${res.status})`);
+    const p = payload as WhopError & { error?: { message?: string } | string };
+    const nested = typeof p.error === "object" ? p.error?.message : p.error;
+    throw new Error(p.message ?? nested ?? `Card payment service error (${res.status})`);
   }
   return payload as T;
 }
@@ -61,11 +62,12 @@ export async function createWhopCheckout(input: {
     whopCall<WhopCheckoutSession>("/checkout_configurations", {
       method: "POST",
       body: JSON.stringify({
-        plan: {
+        company_id: companyId,
+        variant: {
           company_id: companyId,
           currency,
           initial_price: price,
-          plan_type: "one_time",
+          billing_type: "one_time",
           title: `MOVIE MAX ${input.planName}`.slice(0, 60),
         },
         redirect_url: input.redirectUrl,
@@ -80,7 +82,7 @@ export async function createWhopCheckout(input: {
     console.warn("Whop rejected local currency", localCurrency, error);
     const { usdRate } = await import("./geo.server");
     const perUsd = await usdRate(localCurrency);
-    session = await open("usd", Math.max(0.5, Math.round((localPrice / perUsd) * 100) / 100));
+    session = await open("usd", Math.max(1, Math.round((localPrice / perUsd) * 100) / 100));
   }
   if (!session?.id) throw new Error("The card payment service did not start the checkout.");
   return session;
@@ -98,7 +100,7 @@ export type WhopPayment = {
 /** Lists recent payments so we can find the one for a transaction. */
 export async function listWhopPayments(): Promise<WhopPayment[]> {
   const res = await whopCall<{ data?: WhopPayment[] }>(
-    `/payments?company_id=${paymentKey("WHOP_COMPANY_ID") ?? ""}&first=50`,
+    `/payments?account_id=${paymentKey("WHOP_COMPANY_ID") ?? ""}&first=50`,
   );
   return Array.isArray(res?.data) ? res.data : [];
 }
