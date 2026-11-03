@@ -1,3 +1,4 @@
+import { paymentKey } from "./payment-keys.server";
 /**
  * Server-side Whop API helper. The API key is read from the private
  * WHOP_API_KEY secret inside each call — it is never shipped to the browser.
@@ -8,7 +9,7 @@ const WHOP_API = "https://api.whop.com/api/v1";
 type WhopError = { message?: string; error?: string };
 
 async function whopCall<T>(path: string, init?: RequestInit): Promise<T> {
-  const key = process.env["WHOP_API_KEY_V2"] ?? process.env["WHOP_API_KEY"];
+  const key = process.env["WHOP_API_KEY_V2"] || paymentKey("WHOP_API_KEY");
   if (!key) throw new Error("Card payments are not configured yet.");
   const res = await fetch(`${WHOP_API}${path}`, {
     ...init,
@@ -50,7 +51,7 @@ export async function createWhopCheckout(input: {
   currency: string;
   redirectUrl: string;
 }): Promise<WhopCheckoutSession> {
-  const companyId = process.env["WHOP_COMPANY_ID"];
+  const companyId = paymentKey("WHOP_COMPANY_ID");
   if (!companyId) throw new Error("Card payments need your Whop business ID to be set up.");
   // Charge in the buyer's own local currency; only if Whop refuses that
   // currency do we fall back to the same amount converted to USD.
@@ -97,7 +98,7 @@ export type WhopPayment = {
 /** Lists recent payments so we can find the one for a transaction. */
 export async function listWhopPayments(): Promise<WhopPayment[]> {
   const res = await whopCall<{ data?: WhopPayment[] }>(
-    `/payments?company_id=${process.env["WHOP_COMPANY_ID"] ?? ""}&first=50`,
+    `/payments?company_id=${paymentKey("WHOP_COMPANY_ID") ?? ""}&first=50`,
   );
   return Array.isArray(res?.data) ? res.data : [];
 }

@@ -37,3 +37,4 @@
 - Title likes are stored per device in Firestore `title_likes` (id `titleId_deviceId`) and counted per title on the watch page.
 - Sitemaps must never be empty or hang (time-boxed reads, last-good fallback, no video tags); Luganda/VJ/image sitemaps also list Narabox titles via `loadNaraboxCatalog`. Why: Narabox needs no Firestore quota.
 - On Cloudflare (workerd), MovieBox API calls, media bytes and subtitles use raw sockets (`socket-fetch.ts`), falling back to fetch(); the movie file server answers 427 to all Cloudflare traffic, so deployed media bytes need the non-Cloudflare `MOVIEBOX_RELAY` (`docs/moviebox-relay/`). Why: Worker fetch() adds a `CF-Worker` header MovieBox rejects, breaking deployed play/download.
+- Payment provider keys (PayPal secret, Whop, pawaPay) live in server-only `src/lib/payment-keys.server.ts`, with env vars overriding. Why: owner remixes often and chose keys in code over secrets.
