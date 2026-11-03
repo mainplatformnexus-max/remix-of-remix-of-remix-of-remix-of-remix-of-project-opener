@@ -94,7 +94,16 @@ export type UrlEntry = {
 export function urlset(entries: UrlEntry[]) {
   if (!entries.length) entries = [{ path: "/", changefreq: "hourly", priority: "1.0" }];
   // Google rejects image URLs that are not absolute http(s).
-  entries = entries.map((e) => ({ ...e, images: (e.images ?? []).filter((i) => /^https?:\/\//.test(i.loc)).slice(0, 1000) }));
+  entries = entries.map((e) => {
+    const images = (e.images ?? []).filter((i) => /^https?:\/\//.test(i.loc)).slice(0, 1000);
+    // Google drops videos without an absolute thumbnail; fall back to a page image, else omit the video.
+    let video = e.video;
+    if (video && !/^https?:\/\//.test(video.thumb || "")) {
+      video = images[0] ? { ...video, thumb: images[0].loc } : undefined;
+    }
+    if (video && (!video.title?.trim() || !video.description?.trim())) video = undefined;
+    return { ...e, images, video };
+  });
   const body = entries
     .map((e) => {
       const parts = [`  <url>`, `    <loc>${esc(BASE_URL + e.path)}</loc>`];
