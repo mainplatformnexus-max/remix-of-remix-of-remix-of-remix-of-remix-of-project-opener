@@ -81,14 +81,19 @@ async function railway(method: "GET" | "POST", path: string, body?: unknown): Pr
 
 /** Mobile money through Relworx via the Railway payments backend. */
 export const relworx = {
-  deposit: (input: DepositInput): Promise<any> =>
-    railway("POST", "/api/deposit", {
-      msisdn: normalizeMsisdn(input.msisdn),
-      amount: input.amount,
-      currency: input.currency ?? CURRENCY_CODE,
-      reference: input.reference,
-      description: input.description ?? "MOVIE MAX subscription",
-    }),
+  /** Deposits (customer payments) run through pawaPay on the server. */
+  deposit: async (input: DepositInput): Promise<any> => {
+    const { pawaPayDeposit } = await import("./pawapay.functions");
+    return pawaPayDeposit({
+      data: {
+        phone: normalizeMsisdn(input.msisdn),
+        amount: input.amount,
+        currency: input.currency ?? CURRENCY_CODE,
+        reference: input.reference,
+        description: input.description ?? "MOVIEMAX subscription",
+      },
+    });
+  },
   withdraw: (input: DepositInput): Promise<any> =>
     railway("POST", "/api/withdraw", {
       msisdn: normalizeMsisdn(input.msisdn),
@@ -97,8 +102,13 @@ export const relworx = {
       reference: input.reference,
       description: input.description ?? "MOVIE MAX payout",
     }),
-  requestStatus: (id: string, _kind: "deposits" | "payouts" = "deposits"): Promise<any> =>
-    railway("GET", `/api/request-status?internal_reference=${encodeURIComponent(id)}`),
+  requestStatus: async (id: string, _kind: "deposits" | "payouts" = "deposits"): Promise<any> => {
+    if (/^[0-9a-f-]{36}$/i.test(id)) {
+      const { pawaPayDepositStatus } = await import("./pawapay.functions");
+      return pawaPayDepositStatus({ data: { id } });
+    }
+    return railway("GET", `/api/request-status?internal_reference=${encodeURIComponent(id)}`);
+  },
 };
 
 const SUCCESS = /^(success|successful|completed|complete|paid)$/i;
