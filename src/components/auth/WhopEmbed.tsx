@@ -56,7 +56,7 @@ export default function WhopEmbed({
         }}
         className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[14px] font-bold text-background transition hover:opacity-90"
       >
-        <CardLogo /> Pay with card · Whop
+        <span className="rounded-md bg-background px-1.5 py-1"><CardLogo /></span> Pay with card · Whop
       </button>
       <Dialog
         open={open}
