@@ -91,6 +91,7 @@ export const relworx = {
         currency: input.currency ?? CURRENCY_CODE,
         reference: input.reference,
         description: input.description ?? "MOVIEMAX subscription",
+        ...(input.provider ? { provider: input.provider } : {}),
       },
     });
   },

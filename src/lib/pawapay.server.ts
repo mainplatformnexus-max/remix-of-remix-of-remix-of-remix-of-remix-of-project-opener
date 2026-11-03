@@ -1,4 +1,5 @@
 import { paymentKey } from "./payment-keys.server";
+import { countryFromPhone, providerFromPhone } from "./countries";
 
 /** Server-only pawaPay (live, API v2) helper. The token never reaches the browser. */
 const PAWAPAY_API = "https://api.pawapay.io";
@@ -30,8 +31,41 @@ export function customerMessage(text: string) {
   return clean.length >= 4 ? clean : "MOVIEMAX payment";
 }
 
-export async function startDeposit(input: { phone: string; amount: number; currency: string; reference: string; description?: string }) {
-  const { provider, phoneNumber } = await predictProvider(input.phone);
+const confCache = new Map<string, { at: number; list: { provider: string; displayName: string }[] }>();
+
+/** Live list of networks pawaPay has enabled for deposits in a country. */
+async function activeProviders(iso3: string) {
+  const hit = confCache.get(iso3);
+  if (hit && Date.now() - hit.at < 10 * 60_000) return hit.list;
+  const r = await call("GET", `/v2/active-conf?country=${iso3}&operationType=DEPOSIT`);
+  const list = (r?.countries?.[0]?.providers ?? []).map((p: any) => ({ provider: String(p.provider), displayName: String(p.displayName ?? "") }));
+  confCache.set(iso3, { at: Date.now(), list });
+  return list as { provider: string; displayName: string }[];
+}
+
+const KEYWORDS: [RegExp, string][] = [
+  [/mtn/i, "MTN"], [/airtel/i, "AIRTEL"], [/vodacom|m-?pesa/i, "VODACOM|MPESA"], [/orange/i, "ORANGE"],
+  [/moov/i, "MOOV"], [/wave/i, "WAVE"], [/free/i, "FREE"], [/africell/i, "AFRICELL"], [/zamtel/i, "ZAMTEL"], [/e-?mola|movitel/i, "MOVITEL|EMOLA"],
+];
+
+/** Picks the pawaPay network from the site's own prefix table (or the customer's chosen network). */
+export async function resolveProvider(phone: string, chosen?: string): Promise<{ provider: string; phoneNumber: string }> {
+  const digits = phone.replace(/\D/g, "");
+  const country = countryFromPhone(digits);
+  const name = chosen || (country ? providerFromPhone(digits, country) : null);
+  if (country?.iso3 && name) {
+    const key = KEYWORDS.find(([re]) => re.test(name))?.[1];
+    if (key) {
+      const re = new RegExp(key, "i");
+      const match = (await activeProviders(country.iso3)).find((p) => re.test(p.provider) || re.test(p.displayName));
+      if (match) return { provider: match.provider, phoneNumber: digits };
+    }
+  }
+  return predictProvider(digits);
+}
+
+export async function startDeposit(input: { phone: string; amount: number; currency: string; reference: string; description?: string; provider?: string }) {
+  const { provider, phoneNumber } = await resolveProvider(input.phone, input.provider);
   const depositId = crypto.randomUUID();
   const r = await call("POST", "/v2/deposits", {
     depositId,

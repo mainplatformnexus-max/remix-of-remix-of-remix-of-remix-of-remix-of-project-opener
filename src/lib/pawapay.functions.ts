@@ -11,6 +11,7 @@ export const pawaPayDeposit = createServerFn({ method: "POST" })
         currency: z.string().length(3),
         reference: z.string().min(1).max(120),
         description: z.string().max(200).optional(),
+        provider: z.string().max(60).optional(),
       })
       .parse(d),
   )
