@@ -16,6 +16,7 @@ import {
 } from "@/lib/luo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Empty, Panel, Pill, ghostBtn, goldBtn, softField } from "./ui";
+import { ExternalLatest } from "./ExternalLatest";
 
 type Kind = "movie" | "series";
 type Sub = "movies" | "series" | "episodes";
@@ -239,6 +240,7 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
 
   return (
     <div className="space-y-5">
+      {!restricted && <ExternalLatest />}
       <div className="flex flex-wrap gap-2 rounded-full bg-white/60 p-1.5 ring-1 ring-black/5">
         {([
           { k: "movies" as Sub, t: "Movies", i: Film },
