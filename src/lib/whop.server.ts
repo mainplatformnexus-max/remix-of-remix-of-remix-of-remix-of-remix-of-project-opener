@@ -6,7 +6,7 @@ import { paymentKey } from "./payment-keys.server";
 
 const WHOP_API = "https://api.whop.com/api/v1";
 
-type WhopError = { message?: string; error?: string };
+type WhopError = { message?: string };
 
 async function whopCall<T>(path: string, init?: RequestInit): Promise<T> {
   const key = process.env["WHOP_API_KEY_V2"] || paymentKey("WHOP_API_KEY");
@@ -27,8 +27,9 @@ async function whopCall<T>(path: string, init?: RequestInit): Promise<T> {
     payload = { message: text };
   }
   if (!res.ok) {
-    const p = payload as WhopError;
-    throw new Error(p.message ?? p.error ?? `Card payment service error (${res.status})`);
+    const p = payload as WhopError & { error?: { message?: string } | string };
+    const nested = typeof p.error === "object" ? p.error?.message : p.error;
+    throw new Error(p.message ?? nested ?? `Card payment service error (${res.status})`);
   }
   return payload as T;
 }
@@ -61,11 +62,12 @@ export async function createWhopCheckout(input: {
     whopCall<WhopCheckoutSession>("/checkout_configurations", {
       method: "POST",
       body: JSON.stringify({
-        plan: {
+        company_id: companyId,
+        variant: {
           company_id: companyId,
           currency,
           initial_price: price,
-          plan_type: "one_time",
+          billing_type: "one_time",
           title: `MOVIE MAX ${input.planName}`.slice(0, 60),
         },
         redirect_url: input.redirectUrl,
