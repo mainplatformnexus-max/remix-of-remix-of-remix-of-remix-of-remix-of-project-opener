@@ -49,7 +49,7 @@ export function MobileNav() {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 lg:hidden">
-      <nav className="pointer-events-auto flex h-14 w-full items-center justify-between border-t border-sidebar-border bg-sidebar px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_-8px_oklch(0_0_0/0.5)]">
+      <nav className="pointer-events-auto flex h-14 w-full items-center justify-between rounded-t-xl border-t border-sidebar-border bg-card px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_-8px_oklch(0_0_0/0.4)]">
         <Link to="/" className={item(pathname === "/")}>
           <Body icon={imgIcon(homeIconSrc, pathname === "/")} label="Home" active={pathname === "/"} />
         </Link>
