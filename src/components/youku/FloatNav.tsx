@@ -10,6 +10,7 @@ import { db as supabase } from "@/lib/db";
 import { fdb } from "@/lib/fdb";
 import { listAllEpisodes, listLuoTitles, type LuoLanguage } from "@/lib/luo";
 import logoSrc from "@/assets/moviemax-logo.png";
+import { InstallAppButton } from "./InstallAppButton";
 const logoAsset = { url: logoSrc };
 
 /** Floating glass pill nav: LUO · LUGANDA · SUBSCRIBE · LOGIN */
@@ -36,7 +37,8 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
     queryKey: ["my-staff-role", user?.id],
     enabled: !!user && !isAdmin,
     queryFn: async () => {
-      const { data } = await fdb.from("user_roles").select("*").eq("user_id", user!.id).maybeSingle();
+      if (!user) return false;
+      const { data } = await fdb.from("user_roles").select("*").eq("user_id", user.id).maybeSingle();
       return data?.role === "staff";
     },
   });
@@ -51,12 +53,12 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
 
   return (
     <>
-      <div className="search-glow min-w-0 max-w-[calc(100vw-1rem)] shrink rounded-full p-[1.5px] lg:max-w-none lg:shrink-0">
-      <div className="flex min-w-0 items-center gap-1 overflow-x-auto rounded-full bg-background/85 p-1 shadow-lg backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:overflow-visible">
+      <div className="search-glow w-full min-w-0 max-w-full rounded-full p-[1.5px] lg:w-auto lg:shrink-0">
+      <div className="flex min-w-0 items-center justify-between gap-0.5 rounded-full bg-background/85 p-1 backdrop-blur-xl sm:gap-1 lg:justify-start">
         {/* Brand stays inside the floating navigation on every screen. */}
          <Link to="/" aria-label="MOVIE MAX home" className="flex shrink-0 items-center gap-1 pl-1 pr-1 sm:gap-1.5">
            <img src={logoAsset.url} alt="" className="size-7 shrink-0 object-contain sm:size-8" />
-           <span className="brand-logo-text whitespace-nowrap text-[12px] font-extrabold leading-none sm:text-[15px]">
+           <span className="brand-logo-text hidden whitespace-nowrap text-[12px] font-extrabold leading-none min-[390px]:inline sm:text-[15px]">
              MOVIE MAX
            </span>
         </Link>
@@ -99,10 +101,11 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
             <Icon3D name="search" className="size-4" />
           </button>
         )}
+        <InstallAppButton />
         <button
           type="button"
           onClick={openSubscribe}
-          className="grid h-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(100deg,oklch(0.95_0.06_95),oklch(0.87_0.11_82))] px-3.5 text-[12px] font-bold uppercase tracking-wide text-vip-foreground shadow-[0_6px_18px_-8px_var(--vip)] transition hover:brightness-105"
+          className="grid h-8 shrink-0 place-items-center rounded-full bg-vip px-2 text-[10px] font-bold uppercase text-vip-foreground transition hover:brightness-105 sm:px-3.5 sm:text-[12px]"
         >
           <span className="flex items-center gap-1">
             <Crown className="size-3.5" />
