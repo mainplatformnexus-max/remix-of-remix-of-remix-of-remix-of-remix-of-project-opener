@@ -11,7 +11,7 @@ async function call(method: "GET" | "POST", path: string, body?: unknown): Promi
   const res = await fetch(`${PAWAPAY_API}${path}`, {
     method,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? null : JSON.stringify(body),
   });
   const json: any = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(json?.failureReason?.failureMessage ?? `Mobile money error ${res.status}`);
