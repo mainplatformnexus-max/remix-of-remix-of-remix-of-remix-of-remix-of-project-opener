@@ -35,6 +35,11 @@ export async function lookupIp(headers: Headers): Promise<GeoResult | null> {
     headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     "";
   const cfCountry = headers.get("cf-ipcountry");
+  // Cloudflare's own network-address country is the most reliable signal.
+  if (cfCountry && cfCountry !== "XX" && cfCountry !== "T1") {
+    const code = cfCountry.toUpperCase();
+    return { code, name: code, currency: currencyForCountry(code) ?? "USD", dial: "" };
+  }
   try {
     const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`);
     const j = (await res.json()) as {

@@ -24,7 +24,7 @@ const FALLBACK_LOGO: Record<string, string> = {
   vodacom: "https://static-content.pawapay.io/provider_logos/vodacom.png",
   orange: "https://static-content.pawapay.io/provider_logos/orange.png",
   free: "https://static-content.pawapay.io/provider_logos/free.png",
-  moov: "https://static-content.pawapay.io/provider_logos/moov.png",
+  moov: "https://static-content.pawapay.io/provider_logos/moov_money.png",
   zamtel: "https://static-content.pawapay.io/provider_logos/zamtel.png",
 };
 const NEUTRAL = { bg: "#5B5BD6", fg: "#FFFFFF" };

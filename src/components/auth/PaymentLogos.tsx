@@ -48,7 +48,7 @@ const MOMO_LOGOS: Array<[string, string]> = [
   ["airtel", "https://static-content.pawapay.io/provider_logos/airtel.png"],
   ["orange", "https://static-content.pawapay.io/provider_logos/orange.png"],
   ["free", "https://static-content.pawapay.io/provider_logos/free.png"],
-  ["moov", "https://static-content.pawapay.io/provider_logos/moov.png"],
+  ["moov", "https://static-content.pawapay.io/provider_logos/moov_money.png"],
   ["zamtel", "https://static-content.pawapay.io/provider_logos/zamtel.png"],
 ];
 

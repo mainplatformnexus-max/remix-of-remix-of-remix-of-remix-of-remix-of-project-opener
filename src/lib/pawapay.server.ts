@@ -31,16 +31,16 @@ export function customerMessage(text: string) {
   return clean.length >= 4 ? clean : "MOVIEMAX payment";
 }
 
-const confCache = new Map<string, { at: number; list: { provider: string; displayName: string }[] }>();
+const confCache = new Map<string, { at: number; list: { provider: string; displayName: string; logo: string }[] }>();
 
 /** Live list of networks pawaPay has enabled for deposits in a country. */
-async function activeProviders(iso3: string) {
+export async function activeProviders(iso3: string) {
   const hit = confCache.get(iso3);
   if (hit && Date.now() - hit.at < 10 * 60_000) return hit.list;
   const r = await call("GET", `/v2/active-conf?country=${iso3}&operationType=DEPOSIT`);
-  const list = (r?.countries?.[0]?.providers ?? []).map((p: any) => ({ provider: String(p.provider), displayName: String(p.displayName ?? "") }));
+  const list = (r?.countries?.[0]?.providers ?? []).map((p: any) => ({ provider: String(p.provider), displayName: String(p.displayName ?? ""), logo: String(p.logo ?? "") }));
   confCache.set(iso3, { at: Date.now(), list });
-  return list as { provider: string; displayName: string }[];
+  return list as { provider: string; displayName: string; logo: string }[];
 }
 
 const KEYWORDS: [RegExp, string][] = [
