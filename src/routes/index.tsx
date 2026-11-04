@@ -15,6 +15,7 @@ import { getHome } from "@/lib/catalog.functions";
 import type { CatalogItem } from "@/lib/moviebox";
 import { heroHref, loadHeroSlides } from "@/lib/hero";
 import { watchSlug } from "@/lib/watch-links";
+import { MovieBoxFeed } from "@/components/youku/MovieBoxFeed";
 
 type HeroCard = { id: string; title: string; image: string | null; watchId?: string | undefined; href: string; vj?: string | null | undefined; promo: boolean; meta: string };
 
@@ -300,6 +301,7 @@ function HomePage() {
           {!rails.some((r) => r.title === "Gangster") && !!comingSoon.length && (
             <Rail title="Coming Soon" items={comingSoon} />
           )}
+          <MovieBoxFeed />
         </main>
 
       </div>
