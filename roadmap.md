@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Give Download app a holder, hide it after install, restore original Subscribe, and append MovieBox infinite scrolling below all home sections.
+
 - [x] Add Narabox/MovieBox admin latest selections with VJ/ENG tags on home; selection rules tested.
 - [ ] Verify admin latest save and home readback (blocked: no signed-in Firebase admin session; access check remains pending).
 - [x] Add manifest-only browser app installation and fit all floating-header controls at 320/375/390/768px; prompt handler tested with a simulated browser event.
