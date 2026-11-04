@@ -50,12 +50,12 @@ export function InstallAppButton() {
   };
   if (installed) return null;
   return (
-    <span className="shrink-0 rounded-full border border-border bg-secondary p-0.5" title={!prompt ? "App installation is not available in this browser yet" : "Install MOVIE MAX"}>
+    <span className="shrink-0 rounded-full bg-app-install" title={!prompt ? "App installation is not available in this browser yet" : "Install MOVIE MAX"}>
       <Button size="sm" variant="secondary" onClick={() => void install()} disabled={installed || !prompt || busy}
         aria-label={installed ? "App installed" : "Download app"}
-        className="h-8 gap-1 rounded-full px-1 text-[10px] sm:px-3 sm:text-xs">
+        className="h-8 gap-1 rounded-full bg-app-install px-1.5 text-[9px] font-bold uppercase tracking-normal text-app-install-foreground hover:bg-app-install/90 disabled:opacity-100 sm:px-3.5 sm:text-[12px] [&_svg]:size-3 sm:[&_svg]:size-3.5">
         <Download />
-        <span>Download app</span>
+        <span>DOWNLOAD APP</span>
       </Button>
     </span>
   );
