@@ -105,7 +105,7 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
         <button
           type="button"
           onClick={openSubscribe}
-          className="grid h-8 shrink-0 place-items-center rounded-full bg-vip px-2 text-[10px] font-bold uppercase text-vip-foreground transition hover:brightness-105 sm:px-3.5 sm:text-[12px]"
+          className="subscribe-original grid h-8 shrink-0 place-items-center rounded-full px-2 text-[10px] font-bold uppercase tracking-wide text-vip-foreground transition hover:brightness-105 sm:px-3.5 sm:text-[12px]"
         >
           <span className="flex items-center gap-1">
             <Crown className="size-3.5" />
