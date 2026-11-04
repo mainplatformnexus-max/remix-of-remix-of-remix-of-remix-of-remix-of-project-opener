@@ -21,7 +21,7 @@ export function ExternalLatest() {
     let home;
     try { const { fetchHome } = await import("@/lib/moviebox"); home = await fetchHome(); }
     catch { home = await getHome(); }
-    const pool = [...home.hero, ...home.trending, ...home.rows.flatMap((row) => row.items)];
+    const pool = [...(home.hero ?? []), ...(home.trending ?? []), ...(home.rows ?? []).flatMap((row) => row.items ?? [])];
     return [...new Map(pool.map((item) => [item.id, item])).values()];
   } });
   const picks = saved.data ?? [];

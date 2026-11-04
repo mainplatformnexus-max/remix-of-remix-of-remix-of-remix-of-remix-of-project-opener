@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { vjInfo } from "@/lib/vj";
 import { listLatestTitles, LANG_LABEL, type LuoLanguage } from "@/lib/luo";
+import { loadLatestPicks } from "@/lib/latest";
 
 const ROUTE = { luo: "/luo/$id", luganda: "/luganda/$id", teso: "/teso/$id" } as const;
 
@@ -12,12 +13,23 @@ export function LatestUploads() {
     queryFn: () => listLatestTitles(24),
     staleTime: 30_000,
   });
+  const external = useQuery({ queryKey: ["latest-catalog"], queryFn: loadLatestPicks, staleTime: 30_000, refetchInterval: 30_000 });
   const items = (q.data ?? []).filter((t) => t.language in ROUTE);
-  if (!items.length) return null;
+  const catalog = external.data ?? [];
+  if (!items.length && !catalog.length) return null;
   return (
     <section className="mt-6 pr-3 sm:pr-4 lg:pr-8">
       <h2 className="mb-3 text-[17px] font-bold text-foreground">Latest</h2>
       <div className="flex gap-2 overflow-x-auto pb-2 sm:gap-3 [scrollbar-width:none]">
+        {catalog.map((t) => (
+          <Link key={t.key} to={t.href} className="group block w-[30%] shrink-0 sm:w-[160px]">
+            <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-muted ring-1 ring-border transition-transform group-hover:-translate-y-1">
+              {t.poster ? <img src={t.poster} alt={t.title} loading="lazy" decoding="async" className="size-full object-cover" /> : <div className="grid size-full place-items-center px-2 text-center text-xs text-muted-foreground">{t.title}</div>}
+              <span className="absolute left-0 top-0 z-10 max-w-[90%] truncate rounded-br-md bg-primary px-1.5 py-0.5 text-[10px] font-black uppercase text-primary-foreground">{t.tag}</span>
+            </div>
+            <p className="mt-2 truncate text-[13px] text-muted-foreground group-hover:text-foreground">{t.title}</p>
+          </Link>
+        ))}
         {items.map((t) => (
           <Link
             key={t.id}
@@ -32,8 +44,8 @@ export function LatestUploads() {
                 <div className="grid size-full place-items-center px-2 text-center text-xs text-muted-foreground">{t.title}</div>
               )}
               {vjInfo(t.vj) && (
-                <span className={`absolute left-0 top-0 z-10 max-w-[70%] truncate rounded-br-lg bg-gradient-to-r px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow sm:text-[10px] ${vjInfo(t.vj)!.gradient}`}>
-                  {vjInfo(t.vj)!.name}
+                <span className="absolute left-0 top-0 z-10 max-w-[70%] truncate rounded-br-md bg-primary px-1.5 py-0.5 text-[9px] font-black uppercase text-primary-foreground sm:text-[10px]">
+                  {vjInfo(t.vj)?.name}
                 </span>
               )}
               <span className="absolute right-1 top-1 rounded bg-primary px-1.5 py-0.5 text-[10px] font-black uppercase text-primary-foreground">

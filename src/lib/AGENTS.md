@@ -1,4 +1,5 @@
 # src/lib rules
+- External Latest picks use existing app_settings with namespaced source/kind keys; uploaded Latest stays separate. Why: curation must not overwrite provider catalogs.
 - External music: UgMuziki songs (`ug-music*.ts`, `/api/public/song`), Audius (`open-music*.ts`), YouTube videos of `ug-artists.ts` channels (`yt-music*.ts`, embed only; `/music-artist/$slug`); never record listens/earnings or link local artist pages. Why: only uploaders are paid.
 - Artist music, earnings, hero slides and TV channels live in Firestore (`artists`, `music_tracks`, `music_listens` keyed track_user for uniqueness, `artist_withdrawals`, `music_hero_slides`, `tv_channels`) via `src/lib/music.ts`; pure payout/limit/hero rules stay in `music-rules.ts` with tests. Why: one place to change rates and limits.
 - Music-page hero slides come from `music_hero_slides` (paid artist features with `expires_at`, free admin slides with null expiry) plus newest tracks; the hero payment is a Relworx deposit charged and polled in `music.ts` before the slide is written. Why: a slide must never appear without confirmed money.
