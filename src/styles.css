@@ -68,9 +68,13 @@
   --color-hot-foreground: var(--hot-foreground);
   --color-channel: var(--channel);
   --color-channel-foreground: var(--channel-foreground);
+  --color-app-install: var(--app-install);
+  --color-app-install-foreground: var(--app-install-foreground);
 }
 
 :root {
+  --app-install: oklch(0.56 0.21 253);
+  --app-install-foreground: oklch(0.99 0 0);
   --channel: oklch(0.79 0.21 152);
   --channel-foreground: oklch(0.2 0.04 152);
   --wa-banner-shade: linear-gradient(90deg, var(--background) 0%, color-mix(in oklab, var(--background) 96%, transparent) 30%, color-mix(in oklab, var(--background) 82%, transparent) 48%, transparent 78%);
