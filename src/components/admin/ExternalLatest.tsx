@@ -21,7 +21,7 @@ export function ExternalLatest() {
     let home;
     try { const { fetchHome } = await import("@/lib/moviebox"); home = await fetchHome(); }
     catch { home = await getHome(); }
-    const pool = [...home.hero, ...home.trending, ...home.rows.flatMap((row) => row.items)];
+    const pool = [...(home.hero ?? []), ...(home.trending ?? []), ...(home.rows ?? []).flatMap((row) => row.items ?? [])];
     return [...new Map(pool.map((item) => [item.id, item])).values()];
   } });
   const picks = saved.data ?? [];
@@ -53,6 +53,7 @@ export function ExternalLatest() {
   };
   return <section className="space-y-4">
     <h2 className="text-lg font-bold">Latest · External catalogs</h2>
+    {saved.error && <p className="text-destructive">Could not load saved latest selections. <Button variant="ghost" onClick={() => void saved.refetch()}>Retry</Button></p>}
     <div className="flex flex-wrap gap-2">
       <Button variant={source === "narabox" ? "default" : "secondary"} onClick={() => { setSource("narabox"); setTerm(""); setInput(""); }}>Luganda · Narabox API</Button>
       <Button variant={source === "moviebox" ? "default" : "secondary"} onClick={() => { setSource("moviebox"); setTerm(""); setInput(""); }}>English · MovieBox</Button>

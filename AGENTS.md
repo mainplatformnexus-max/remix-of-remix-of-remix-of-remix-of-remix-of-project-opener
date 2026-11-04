@@ -12,6 +12,7 @@
 <!-- LOVABLE:END -->
 
 - Subdirectories may have their own `AGENTS.md` (e.g. `src/lib/`, `src/lib/providers/`); read it before changing files there.
+- App install uses manifest/browser prompt only; no app-shell SW. Why: avoid stale previews.
 
 - The WhatsApp floating banner uses bundled movie-wall artwork and the existing bundled brand logo with semantic channel tokens. Why: its imagery must render on independent Cloudflare deployments without Lovable asset URLs.
 

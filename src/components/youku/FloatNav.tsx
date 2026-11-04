@@ -58,7 +58,7 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
         {/* Brand stays inside the floating navigation on every screen. */}
          <Link to="/" aria-label="MOVIE MAX home" className="flex shrink-0 items-center gap-1 pl-1 pr-1 sm:gap-1.5">
            <img src={logoAsset.url} alt="" className="size-7 shrink-0 object-contain sm:size-8" />
-           <span className="brand-logo-text hidden whitespace-nowrap text-[12px] font-extrabold leading-none min-[390px]:inline sm:text-[15px]">
+           <span className="brand-logo-text hidden whitespace-nowrap text-[12px] font-extrabold leading-none min-[480px]:inline sm:text-[15px]">
              MOVIE MAX
            </span>
         </Link>
@@ -162,7 +162,7 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
           <button
             type="button"
             onClick={() => setAuthOpen(true)}
-            className="grid h-8 place-items-center rounded-full bg-foreground px-3.5 text-[12px] font-black uppercase tracking-wide text-background transition hover:opacity-90"
+            className="grid h-8 shrink-0 place-items-center rounded-full bg-foreground px-2 text-[12px] font-black uppercase tracking-wide text-background transition hover:opacity-90 sm:px-3.5"
           >
             <span className="flex items-center gap-1">
               <LogIn className="size-3.5" />
