@@ -53,7 +53,7 @@ export function InstallAppButton() {
     <span className="shrink-0 rounded-full border border-border bg-secondary p-0.5" title={!prompt ? "App installation is not available in this browser yet" : "Install MOVIE MAX"}>
       <Button size="sm" variant="secondary" onClick={() => void install()} disabled={installed || !prompt || busy}
         aria-label={installed ? "App installed" : "Download app"}
-        className="h-8 gap-1 rounded-full px-1.5 text-[10px] sm:px-3 sm:text-xs">
+        className="h-8 gap-1 rounded-full px-1 text-[10px] sm:px-3 sm:text-xs">
         <Download />
         <span>Download app</span>
       </Button>
