@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Give Download app a holder, hide it after install, restore original Subscribe, and append MovieBox infinite scrolling below all home sections.
+- [x] Give Download app a holder, hide it after install/reload, restore original Subscribe, and append MovieBox infinite scrolling; real feed grew from 18 to 123 titles, 320px header checked.
 
 - [x] Add Narabox/MovieBox admin latest selections with VJ/ENG tags on home; selection rules tested.
 - [ ] Verify admin latest save and home readback (blocked: no signed-in Firebase admin session; access check remains pending).
@@ -13,7 +13,7 @@
 - [ ] Uploaded movies stopped on luofilm.site (blocked: domain currently has no address in Cloudflare DNS; needs user to reattach the domain and redeploy).
 
 - [ ] Reduce timeline seek delay while retaining the reference site's ArtPlayer and exact full MP4 files; measure byte-range response behavior.
-- [ ] Add the current MovieBox website's exact scrolling home feed after all existing sections; verify multiple pages and named watch links.
+- [x] Add the current MovieBox website's exact scrolling home feed after all existing sections; verified real continuation pages and existing named watch links.
 
 - [x] Use movie-name watch URLs and canonical links; verified legacy Tulsa King link, direct reload, episode selection, and home links. Verified seeking and quality switches retain playback/fullscreen with a browser-decodable test video.
 
