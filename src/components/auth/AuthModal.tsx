@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { authMessage, signInWithGoogle, signInWithIdentifier, signUpWithIdentifier } from "@/lib/db";
 import { useAuth } from "@/hooks/useAuth";
-import { isValidMsisdn } from "@/lib/relworx";
+import { accountPhone } from "@/lib/phone-country";
+import type { CountryCode } from "libphonenumber-js";
+import { CountryPhoneInput } from "./CountryPhoneInput";
 import { startGoogleOneTap } from "@/lib/google-one-tap";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -12,6 +14,7 @@ export function AuthModal({ open, onOpenChange }: { open: boolean; onOpenChange:
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState<CountryCode>("UG");
   const [busy, setBusy] = useState(false);
   const { refresh, user } = useAuth();
 
@@ -40,11 +43,12 @@ export function AuthModal({ open, onOpenChange }: { open: boolean; onOpenChange:
     setBusy(true);
     try {
       if (mode === "signup") {
-        if (!isValidMsisdn(phone)) {
-          toast.error("Enter the mobile money number for this account, e.g. 0770 123 456");
+        const normalized = accountPhone(phone, country);
+        if (!normalized) {
+          toast.error("Enter a valid phone number for the selected country.");
           return;
         }
-        await signUpWithIdentifier({ identifier, password, name, phone });
+        await signUpWithIdentifier({ identifier, password, name, phone: normalized, country });
         toast.success("Account created. You're signed in.");
       } else {
         await signInWithIdentifier(identifier, password);
@@ -121,14 +125,7 @@ export function AuthModal({ open, onOpenChange }: { open: boolean; onOpenChange:
             className={field}
           />
           {mode === "signup" && (
-            <input
-              required
-              inputMode="tel"
-              placeholder="Mobile money number (required)"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={field}
-            />
+            <CountryPhoneInput country={country} onCountryChange={setCountry} phone={phone} onPhoneChange={setPhone} disabled={busy} />
           )}
           <input
             type="password"

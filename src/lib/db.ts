@@ -29,7 +29,7 @@ export function isAdminCredential(email?: string | null, phone?: string | null) 
 }
 
 /** Creates the profile on first sign-in and refreshes `last_seen` afterwards. */
-export async function ensureProfile(user: User, extra?: { name?: string; phone?: string }) {
+export async function ensureProfile(user: User, extra?: { name?: string; phone?: string; country?: string }) {
   try {
     const { data: existing } = await fdb.from("profiles").select("*").eq("id", user.uid).maybeSingle();
     const base = {
@@ -40,6 +40,7 @@ export async function ensureProfile(user: User, extra?: { name?: string; phone?:
         ? { name: extra?.name ?? user.displayName, display_name: extra?.name ?? user.displayName }
         : {}),
       ...(extra?.phone ? { phone: extra.phone } : {}),
+      ...(extra?.country ? { country_code: extra.country } : {}),
       ...(user.photoURL ? { avatar_url: user.photoURL } : {}),
     };
     if (existing) await fdb.from("profiles").update(base).eq("id", user.uid);
@@ -91,6 +92,7 @@ export async function signUpWithIdentifier(input: {
   password: string;
   name?: string;
   phone?: string;
+  country?: string;
 }) {
   const auth = getFbAuth();
   await setPersistence(auth, browserLocalPersistence).catch(() => {});
@@ -99,7 +101,7 @@ export async function signUpWithIdentifier(input: {
   const email = isEmail ? id : phoneToAuthEmail(id);
   const phone = digitsOnly(input.phone ?? (isEmail ? "" : id)) || undefined;
   const cred = await createUserWithEmailAndPassword(auth, email, input.password);
-  await ensureProfile(cred.user, { ...(input.name ? { name: input.name } : {}), ...(phone ? { phone } : {}) });
+  await ensureProfile(cred.user, { ...(input.name ? { name: input.name } : {}), ...(phone ? { phone } : {}), ...(input.country ? { country: input.country } : {}) });
   return cred;
 }
 

@@ -25,7 +25,7 @@ export function LatestUploads() {
           <Link key={t.key} to={t.href} className="group block w-[30%] shrink-0 sm:w-[160px]">
             <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-muted ring-1 ring-border transition-transform group-hover:-translate-y-1">
               {t.poster ? <img src={t.poster} alt={t.title} loading="lazy" decoding="async" className="size-full object-cover" /> : <div className="grid size-full place-items-center px-2 text-center text-xs text-muted-foreground">{t.title}</div>}
-              <span className="absolute left-0 top-0 z-10 max-w-[90%] truncate rounded-br-md bg-primary px-1.5 py-0.5 text-[10px] font-black uppercase text-primary-foreground">{t.tag}</span>
+              <span className={`absolute left-0 top-0 z-10 max-w-[90%] truncate rounded-br-md px-1.5 py-0.5 text-[10px] font-black uppercase text-primary-foreground ${t.source === "narabox" ? `bg-gradient-to-r ${vjInfo(t.tag)?.gradient ?? "bg-primary"}` : "bg-primary"}`}>{t.tag}</span>
             </div>
             <p className="mt-2 truncate text-[13px] text-muted-foreground group-hover:text-foreground">{t.title}</p>
           </Link>
@@ -44,7 +44,7 @@ export function LatestUploads() {
                 <div className="grid size-full place-items-center px-2 text-center text-xs text-muted-foreground">{t.title}</div>
               )}
               {vjInfo(t.vj) && (
-                <span className="absolute left-0 top-0 z-10 max-w-[70%] truncate rounded-br-md bg-primary px-1.5 py-0.5 text-[9px] font-black uppercase text-primary-foreground sm:text-[10px]">
+                <span className={`absolute left-0 top-0 z-10 max-w-[70%] truncate rounded-br-md bg-gradient-to-r px-1.5 py-0.5 text-[9px] font-black uppercase text-primary-foreground sm:text-[10px] ${vjInfo(t.vj)?.gradient ?? "bg-primary"}`}>
                   {vjInfo(t.vj)?.name}
                 </span>
               )}

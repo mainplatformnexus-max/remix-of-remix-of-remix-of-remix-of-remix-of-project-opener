@@ -1,4 +1,6 @@
 # Roadmap
+- [x] Add searchable signup country flags and admin country display; match Latest and home cover VJ colours to VJ pages. Country selection and images checked at desktop/mobile, seven tests passed.
+- [ ] Verify signup country save and admin readback with an authenticated account (blocked: no signed-in Firebase account available).
 
 - [x] Give Download app a holder, hide it after install/reload, restore original Subscribe, and append MovieBox infinite scrolling; real feed grew from 18 to 123 titles, 320px header checked.
 
