@@ -114,7 +114,7 @@ export function UsersTab() {
   );
 }
 
-function UserCountry({ user }: { user?: Row }) {
+function UserCountry({ user }: { user: Row | undefined }) {
   const country = phoneCountry(user?.country_code, user?.msisdn ?? user?.phone);
   return country ? <span className="inline-flex items-center gap-2 whitespace-nowrap"><CountryFlag code={country.code} name={country.name} />{country.name}</span> : <span className="opacity-55">Not provided</span>;
 }
