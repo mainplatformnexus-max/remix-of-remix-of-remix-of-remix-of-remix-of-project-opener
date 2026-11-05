@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Mail, Phone, Search, Crown, Ban } from "lucide-react";
 import { db as supabase } from "@/lib/db";
+import { phoneCountry } from "@/lib/phone-country";
+import { CountryFlag } from "@/components/auth/CountryPhoneInput";
 import { fullDate, getPlans, money, seriesByDay, timeAgo, type Plan } from "@/lib/admin";
 import { Empty, Panel, Pill, SoftArea, Stat, ghostBtn, goldBtn, softField } from "./ui";
 
@@ -11,6 +13,8 @@ type Row = {
   email: string | null;
   display_name: string | null;
   phone: string | null;
+  country_code?: string | null;
+  msisdn?: string | null;
   last_seen: string | null;
   created_at: string;
 };
@@ -37,7 +41,7 @@ export function UsersTab() {
     const t = q.trim().toLowerCase();
     if (!t) return list;
     return list.filter((u) =>
-      [u.display_name, u.email, u.phone].some((v) => (v ?? "").toLowerCase().includes(t)),
+      [u.display_name, u.email, u.phone, phoneCountry(u.country_code, u.msisdn ?? u.phone)?.name].some((v) => (v ?? "").toLowerCase().includes(t)),
     );
   }, [users.data, q]);
 
@@ -57,7 +61,7 @@ export function UsersTab() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search name, email, phone"
+            placeholder="Search name, email, phone, country"
             className={`${softField} w-64 pl-9`}
           />
         </label>
@@ -75,6 +79,7 @@ export function UsersTab() {
                 <th className="px-3">Name</th>
                 <th className="px-3">Email</th>
                 <th className="px-3">Phone</th>
+                <th className="px-3">Country</th>
                 <th className="px-3">Subscription</th>
                 <th className="px-3">Last seen</th>
               </tr>
@@ -93,6 +98,7 @@ export function UsersTab() {
                     </td>
                     <td className="px-3 py-3 opacity-75">{u.email ?? "—"}</td>
                     <td className="px-3 py-3 opacity-75">{u.phone ?? "—"}</td>
+                    <td className="px-3 py-3"><UserCountry user={u} /></td>
                     <td className="px-3 py-3">
                       {active ? <Pill tone="on">{active.plan_name}</Pill> : <Pill tone="off">Free</Pill>}
                     </td>
@@ -106,6 +112,11 @@ export function UsersTab() {
       )}
     </Panel>
   );
+}
+
+function UserCountry({ user }: { user?: Row }) {
+  const country = phoneCountry(user?.country_code, user?.msisdn ?? user?.phone);
+  return country ? <span className="inline-flex items-center gap-2 whitespace-nowrap"><CountryFlag code={country.code} name={country.name} />{country.name}</span> : <span className="opacity-55">Not provided</span>;
 }
 
 function UserDetail({ user, onBack }: { user: Row | undefined; onBack: () => void }) {
@@ -211,6 +222,7 @@ function UserDetail({ user, onBack }: { user: Row | undefined; onBack: () => voi
               <span className="flex items-center gap-1">
                 <Phone className="size-3.5" /> {user?.phone ?? "—"}
               </span>
+              <UserCountry user={user} />
             </p>
           </div>
           <div className="ml-auto">

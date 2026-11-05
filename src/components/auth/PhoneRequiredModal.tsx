@@ -4,7 +4,9 @@ import { Phone, ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { fdb, nowIso } from "@/lib/fdb";
 import { digitsOnly } from "@/lib/firebase";
-import { isValidMsisdn, normalizeMsisdn } from "@/lib/relworx";
+import { accountPhone } from "@/lib/phone-country";
+import type { CountryCode } from "libphonenumber-js";
+import { CountryPhoneInput } from "./CountryPhoneInput";
 import { useAuth } from "@/hooks/useAuth";
 
 /**
@@ -14,22 +16,24 @@ import { useAuth } from "@/hooks/useAuth";
 export function PhoneRequiredModal({ open }: { open: boolean }) {
   const { user, refresh, signOut } = useAuth();
   const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState<CountryCode>("UG");
   const [busy, setBusy] = useState(false);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!isValidMsisdn(phone)) {
-      toast.error("Enter a valid MTN or Airtel number, e.g. 0770 123 456");
+    const normalized = accountPhone(phone, country);
+    if (!normalized) {
+      toast.error("Enter a valid phone number for the selected country.");
       return;
     }
     setBusy(true);
     try {
-      const normalized = normalizeMsisdn(phone);
-      await fdb
+      const { error } = await fdb
         .from("profiles")
-        .update({ phone: digitsOnly(phone), msisdn: normalized, updated_at: nowIso() })
+        .update({ phone: digitsOnly(normalized), msisdn: normalized, country_code: country, updated_at: nowIso() })
         .eq("id", user.id);
+      if (error) throw error;
       toast.success("Phone number saved.");
       refresh();
     } catch {
@@ -61,15 +65,7 @@ export function PhoneRequiredModal({ open }: { open: boolean }) {
             membership safe.
           </p>
 
-          <input
-            autoFocus
-            required
-            inputMode="tel"
-            placeholder="0770 123 456"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="mt-4 h-12 w-full rounded-2xl bg-white/80 px-4 text-center text-[15px] font-semibold tracking-wide outline-none ring-1 ring-black/5 transition placeholder:font-normal placeholder:opacity-40 focus:bg-white focus:ring-2 focus:ring-[oklch(0.82_0.1_65)]"
-          />
+          <div className="mt-4"><CountryPhoneInput country={country} onCountryChange={setCountry} phone={phone} onPhoneChange={setPhone} disabled={busy} /></div>
 
           <button
             type="submit"
