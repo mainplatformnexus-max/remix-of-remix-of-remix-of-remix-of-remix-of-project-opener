@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Add searchable signup country flags, show users' countries in admin, and match home VJ tag colours to VJ pages.
 
 - [x] Give Download app a holder, hide it after install/reload, restore original Subscribe, and append MovieBox infinite scrolling; real feed grew from 18 to 123 titles, 320px header checked.
 
