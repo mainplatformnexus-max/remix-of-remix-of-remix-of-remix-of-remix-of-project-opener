@@ -50,10 +50,10 @@ export function InstallAppButton() {
   };
   if (installed) return null;
   return (
-    <span className="shrink-0 rounded-full bg-app-install" title={!prompt ? "App installation is not available in this browser yet" : "Install MOVIE MAX"}>
+    <span className="shrink-0 justify-self-center rounded-full bg-app-install" title={!prompt ? "App installation is not available in this browser yet" : "Install MOVIE MAX"}>
       <Button size="sm" variant="secondary" onClick={() => void install()} disabled={installed || !prompt || busy}
         aria-label={installed ? "App installed" : "Download app"}
-        className="size-8 gap-1 rounded-full bg-app-install p-0 font-bold uppercase tracking-normal text-app-install-foreground hover:bg-app-install/90 disabled:opacity-100 sm:h-8 sm:w-auto sm:px-3.5 sm:text-[12px] [&_svg]:size-4 sm:[&_svg]:size-3.5">
+        className="size-10 gap-1 rounded-full bg-app-install p-0 font-bold uppercase tracking-normal text-app-install-foreground hover:bg-app-install/90 disabled:opacity-100 sm:h-8 sm:w-auto sm:px-3.5 sm:text-[12px] [&_svg]:size-5 sm:[&_svg]:size-3.5">
         <Download aria-hidden="true" strokeWidth={2} />
         <span className="hidden sm:inline">DOWNLOAD APP</span>
       </Button>

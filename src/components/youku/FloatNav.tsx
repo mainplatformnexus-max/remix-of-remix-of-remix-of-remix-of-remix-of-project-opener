@@ -11,6 +11,7 @@ import { fdb } from "@/lib/fdb";
 import { listAllEpisodes, listLuoTitles, type LuoLanguage } from "@/lib/luo";
 import logoSrc from "@/assets/moviemax-logo.png";
 import { InstallAppButton } from "./InstallAppButton";
+import { Button } from "@/components/ui/button";
 const logoAsset = { url: logoSrc };
 
 /** Floating glass pill nav: LUO · LUGANDA · SUBSCRIBE · LOGIN */
@@ -54,11 +55,11 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
   return (
     <>
       <div className="search-glow w-full min-w-0 max-w-full rounded-full p-[1.5px] lg:w-auto lg:shrink-0">
-      <div className="flex min-w-0 items-center justify-between gap-0.5 rounded-full bg-background/85 p-1 backdrop-blur-xl sm:gap-1 lg:justify-start">
+      <div className="grid min-w-0 grid-flow-col auto-cols-[minmax(0,1fr)] items-center gap-1 rounded-full bg-background/85 p-1 backdrop-blur-xl sm:flex sm:justify-between lg:justify-start">
         {/* Brand stays inside the floating navigation on every screen. */}
-         <Link to="/" aria-label="MOVIE MAX home" className="flex shrink-0 items-center gap-1 pl-1 pr-1 sm:gap-1.5">
-           <img src={logoAsset.url} alt="" className="size-7 shrink-0 object-contain sm:size-8" />
-           <span className="brand-logo-text hidden whitespace-nowrap text-[12px] font-extrabold leading-none min-[480px]:inline sm:text-[15px]">
+         <Link to="/" aria-label="MOVIE MAX home" className="flex size-10 min-w-0 shrink-0 items-center justify-center gap-1 justify-self-center sm:h-8 sm:w-auto sm:gap-1.5 sm:px-1">
+           <img src={logoAsset.url} alt="" className="size-8 shrink-0 object-contain" />
+           <span className="brand-logo-text hidden whitespace-nowrap text-[12px] font-extrabold leading-none sm:inline sm:text-[15px]">
              MOVIE MAX
            </span>
         </Link>
@@ -92,37 +93,37 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
           Teso
         </Link>
         {onSearch && (
-          <button
+          <Button variant="ghost"
             type="button"
             aria-label="Search"
             onClick={onSearch}
-            className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground/12 text-foreground transition hover:bg-foreground/25 lg:hidden"
+            className="grid size-10 shrink-0 place-items-center justify-self-center rounded-full bg-foreground/12 p-0 text-foreground transition hover:bg-foreground/25 sm:size-8 lg:hidden"
           >
             <Icon3D name="search" className="size-4" />
-          </button>
+          </Button>
         )}
         <InstallAppButton />
-        <button
+        <Button
           type="button"
           onClick={openSubscribe}
-          className="subscribe-original grid h-8 shrink-0 place-items-center rounded-full px-2 text-[10px] font-bold uppercase tracking-wide text-vip-foreground transition hover:brightness-105 sm:px-3.5 sm:text-[12px]"
+          className="subscribe-original col-span-2 grid h-10 min-w-0 w-full shrink-0 place-items-center rounded-full px-1.5 text-[11px] font-bold uppercase tracking-normal text-vip-foreground transition hover:brightness-105 sm:h-8 sm:w-auto sm:px-3.5 sm:text-[12px]"
         >
           <span className="flex items-center gap-1">
             <Crown className="size-3.5" />
             <span>Subscribe</span>
           </span>
-        </button>
+        </Button>
 
         {user ? (
-          <div className="relative shrink-0">
-            <button
+          <div className="relative shrink-0 justify-self-center">
+            <Button variant="ghost"
               type="button"
               onClick={() => setMenu((v) => !v)}
               aria-label="Account"
-              className="grid size-8 place-items-center rounded-full bg-foreground/15 text-foreground transition hover:bg-foreground/25"
+              className="grid size-10 place-items-center rounded-full bg-foreground/15 p-0 text-foreground transition hover:bg-foreground/25 sm:size-8"
             >
               <UserIcon className="size-4" />
-            </button>
+            </Button>
             {menu && (
               <div
                 className="fixed right-2 top-14 z-50 w-48 lg:absolute lg:right-0 lg:top-10 overflow-hidden rounded-xl bg-card/95 p-1 shadow-2xl ring-1 ring-border backdrop-blur-xl"
@@ -159,16 +160,17 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
             )}
           </div>
         ) : (
-          <button
+          <Button
             type="button"
             onClick={() => setAuthOpen(true)}
-            className="grid h-8 shrink-0 place-items-center rounded-full bg-foreground px-2 text-[12px] font-black uppercase tracking-wide text-background transition hover:opacity-90 sm:px-3.5"
+            aria-label="Login"
+            className="grid size-10 shrink-0 place-items-center justify-self-center rounded-full bg-foreground p-0 text-[12px] font-black uppercase tracking-wide text-background transition hover:opacity-90 sm:h-8 sm:w-auto sm:px-3.5"
           >
             <span className="flex items-center gap-1">
               <LogIn className="size-3.5" />
               <span className="hidden sm:inline">Login</span>
             </span>
-          </button>
+          </Button>
         )}
       </div>
       </div>
