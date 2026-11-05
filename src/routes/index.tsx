@@ -16,6 +16,7 @@ import type { CatalogItem } from "@/lib/moviebox";
 import { heroHref, loadHeroSlides } from "@/lib/hero";
 import { watchSlug } from "@/lib/watch-links";
 import { MovieBoxFeed } from "@/components/youku/MovieBoxFeed";
+import { vjInfo } from "@/lib/vj";
 
 type HeroCard = { id: string; title: string; image: string | null; watchId?: string | undefined; href: string; vj?: string | null | undefined; promo: boolean; meta: string };
 
@@ -227,8 +228,8 @@ function HomePage() {
                               className="group relative block aspect-[16/9] overflow-hidden rounded-[calc(1rem-2px)] bg-card"
                             >
                               {s.vj && (
-                                <span className="absolute left-2 top-2 z-10 rounded-md bg-primary px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-primary-foreground shadow sm:text-xs">
-                                  VJ {s.vj}
+                                <span className={`absolute left-2 top-2 z-10 rounded-md bg-gradient-to-r px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-primary-foreground shadow sm:text-xs ${vjInfo(s.vj)?.gradient ?? "bg-primary"}`}>
+                                  {vjInfo(s.vj)?.name}
                                 </span>
                               )}
                               {s.promo && (
