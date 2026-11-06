@@ -35,7 +35,7 @@ type MergedTx = Tx & {
   userName: string;
   userEmail: string;
   planName: string;
-  liveStatus?: string;
+  liveStatus?: string | undefined;
 };
 
 async function loadWallet() {
