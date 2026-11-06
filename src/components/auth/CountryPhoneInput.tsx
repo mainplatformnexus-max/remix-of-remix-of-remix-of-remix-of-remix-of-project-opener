@@ -17,14 +17,26 @@ export function CountryPhoneInput({ country, onCountryChange, phone, onPhoneChan
   const [open, setOpen] = useState(false);
   const selected = PHONE_COUNTRIES.find((c) => c.code === country);
   if (!selected) return null;
-  return <div className="flex h-11 w-full min-w-0 items-center rounded-md border border-input bg-background text-foreground focus-within:ring-2 focus-within:ring-ring">
+  // Light theme for this control: the app shell is dark, but the phone
+  // country picker must read as a light form field.
+  const lightVars = {
+    "--background": "#ffffff",
+    "--foreground": "#171717",
+    "--popover": "#ffffff",
+    "--popover-foreground": "#171717",
+    "--muted-foreground": "#525252",
+    "--accent": "#f0f0f0",
+    "--accent-foreground": "#171717",
+    "--input": "#d4d4d4",
+  } as React.CSSProperties;
+  return <div style={lightVars} className="flex h-11 w-full min-w-0 items-center rounded-md border border-input bg-background text-foreground focus-within:ring-2 focus-within:ring-ring">
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button type="button" variant="ghost" disabled={disabled} role="combobox" aria-expanded={open} aria-label={`Phone country: ${selected.name}`} className="h-full shrink-0 gap-1.5 rounded-r-none border-r border-input px-2">
           <CountryFlag code={selected.code} name={selected.name} /><span className="text-xs">+{selected.dial}</span><ChevronsUpDown className="size-3 opacity-60" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[min(320px,calc(100vw-32px))] border-neutral-200 bg-white p-0 text-neutral-900 shadow-xl [&_input]:text-neutral-900 [&_[cmdk-item]]:text-neutral-900 [&_[cmdk-item][aria-selected=true]]:bg-neutral-100 [&_[cmdk-item][aria-selected=true]]:text-neutral-900">
+      <PopoverContent align="start" style={lightVars} className="w-[min(320px,calc(100vw-32px))] border-neutral-200 bg-white p-0 text-neutral-900 shadow-xl">
         <Command><CommandInput placeholder="Search country or code…" aria-label="Search country" />
           <CommandList><CommandEmpty>No countries found.</CommandEmpty><CommandGroup>
             {PHONE_COUNTRIES.map((c) => <CommandItem key={c.code} value={`${c.name} ${c.code} +${c.dial}`} onSelect={() => { onCountryChange(c.code); setOpen(false); }}>
