@@ -24,7 +24,7 @@ export function CountryPhoneInput({ country, onCountryChange, phone, onPhoneChan
           <CountryFlag code={selected.code} name={selected.name} /><span className="text-xs">+{selected.dial}</span><ChevronsUpDown className="size-3 opacity-60" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[min(320px,calc(100vw-32px))] p-0">
+      <PopoverContent align="start" className="w-[min(320px,calc(100vw-32px))] border-neutral-200 bg-white p-0 text-neutral-900 shadow-xl [&_input]:text-neutral-900 [&_[cmdk-item]]:text-neutral-900 [&_[cmdk-item][aria-selected=true]]:bg-neutral-100 [&_[cmdk-item][aria-selected=true]]:text-neutral-900">
         <Command><CommandInput placeholder="Search country or code…" aria-label="Search country" />
           <CommandList><CommandEmpty>No countries found.</CommandEmpty><CommandGroup>
             {PHONE_COUNTRIES.map((c) => <CommandItem key={c.code} value={`${c.name} ${c.code} +${c.dial}`} onSelect={() => { onCountryChange(c.code); setOpen(false); }}>
