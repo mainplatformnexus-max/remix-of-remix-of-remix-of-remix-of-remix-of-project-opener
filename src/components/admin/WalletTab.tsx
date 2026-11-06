@@ -182,7 +182,7 @@ export function WalletTab() {
       void qc.invalidateQueries({ queryKey: ["admin-overview"] });
       void qc.invalidateQueries({ queryKey: ["relworx-balance"] });
       void qc.invalidateQueries({ queryKey: ["relworx-balances"] });
-      void qc.invalidateQueries({ queryKey: ["relworx-transactions"] });
+      void qc.invalidateQueries({ queryKey: ["whop-payments"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -259,16 +259,16 @@ export function WalletTab() {
 
       <div className="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
         <Panel
-          title="Relworx transactions"
+          title="Payments"
           action={
             <div className="flex items-center gap-2">
               <span className="text-[11px] opacity-60">
-                {rw.isLoading ? "loading…" : rw.data == null ? "service offline" : `${rows.length} live`}
+                {q.isLoading ? "loading…" : `${rows.length} payments${whop.data?.ok ? " · card status live from Whop" : ""}`}
               </span>
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm("Delete every stored transaction from the database? Relworx keeps the real record."))
+                  if (confirm("Delete every stored transaction from the database? The payment providers keep the real record."))
                     purge.mutate();
                 }}
                 disabled={purge.isPending}
@@ -280,7 +280,7 @@ export function WalletTab() {
           }
         >
           {rows.length === 0 ? (
-            <Empty>{rw.data == null ? "Relworx is unreachable right now." : "No transactions yet."}</Empty>
+            <Empty>{q.isLoading ? "Loading payments…" : "No payments yet."}</Empty>
           ) : (
             <div className="space-y-2">
               {rows.map((t) => (
@@ -353,12 +353,12 @@ export function WalletTab() {
               {[
                 ["User", openTx.userName],
                 ["Email", openTx.userEmail],
-                ["Phone", openTx.msisdn ?? "—"],
+                ["Phone", openTx.phone ?? "—"],
                 ["Plan", openTx.planName],
-                ["Kind", openTx.kind],
+                ["Method", openTx.method ?? openTx.kind],
                 ["Reference", openTx.reference],
-                ["Relworx reference", openTx.internal_reference ?? "—"],
-                ["Status", openTx.status],
+                ["Provider reference", (openTx as { internal_reference?: string | null }).internal_reference ?? "—"],
+                ["Status", openTx.liveStatus ? `${openTx.status} (live)` : openTx.status],
                 ["Date", fullDate(openTx.created_at)],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-3 rounded-2xl bg-white/65 px-3 py-2">
