@@ -6,11 +6,10 @@ import { db as supabase } from "@/lib/db";
 import { fullDate, money, seriesByDay } from "@/lib/admin";
 import {
   allWalletBalances,
-  listRelworxTransactions,
   sendWithdrawal,
   walletBalance,
-  type RelworxTx,
 } from "@/lib/relworx";
+import { adminWhopPayments } from "@/lib/admin-payments.functions";
 import { COUNTRIES, countryByCurrency, formatAmount, normalizeFor } from "@/lib/countries";
 
 import { purgeTable } from "@/lib/fdb";
@@ -31,11 +30,12 @@ type Tx = {
   created_at: string;
 };
 
-/** A Relworx transaction joined with the local user and plan it paid for. */
-type MergedTx = RelworxTx & {
+/** A real payment (pawaPay / Whop / PayPal) joined with the user and plan. */
+type MergedTx = Tx & {
   userName: string;
   userEmail: string;
   planName: string;
+  liveStatus?: string;
 };
 
 async function loadWallet() {
@@ -85,39 +85,45 @@ export function WalletTab() {
 
   const profileOf = (uid: string | null) => (q.data?.profiles ?? []).find((p) => p.id === uid);
 
-  /* ---------- Relworx is the money source of truth ---------- */
-  const rw = useQuery({
-    queryKey: ["relworx-transactions"],
-    queryFn: listRelworxTransactions,
+  /* ---------- Real provider records: pawaPay / Whop / PayPal ---------- */
+  // Live card payments straight from Whop, matched to local transactions.
+  const whop = useQuery({
+    queryKey: ["whop-payments"],
+    queryFn: () => adminWhopPayments(),
     refetchInterval: 20_000,
     staleTime: 10_000,
   });
 
-  // Each Relworx row is matched to the local payment by reference so the admin
-  // sees who paid and which plan they bought.
-  const rows: MergedTx[] = (rw.data ?? []).map((t) => {
-    const local = (q.data?.tx ?? []).find(
-      (l) => l.reference === t.reference || String(l.id) === t.id,
-    );
-    const p = profileOf(local?.user_id ?? null);
+  // Every local transaction is a real payment record: mobile money deposits
+  // are confirmed live against pawaPay, card payments against Whop, and
+  // PayPal orders against PayPal — each row carries the provider reference.
+  const rows: MergedTx[] = (q.data?.tx ?? []).map((t) => {
+    const p = profileOf(t.user_id);
+    const liveCard = whop.data?.payments.find((w) => w.txId === String(t.id));
+    const liveStatus = liveCard
+      ? liveCard.refunded
+        ? "refunded"
+        : liveCard.status === "paid" && (!liveCard.substatus || liveCard.substatus === "succeeded")
+          ? "success"
+          : ["void", "uncollectible", "failed", "canceled", "cancelled"].includes(liveCard.status)
+            ? "failed"
+            : "pending"
+      : undefined;
     return {
       ...t,
-      userName: p?.display_name ?? p?.name ?? p?.email ?? t.msisdn ?? "Unknown user",
+      status: liveStatus ?? t.status,
+      liveStatus,
+      userName: p?.display_name ?? p?.name ?? p?.email ?? t.phone ?? "Unknown user",
       userEmail: p?.email ?? "—",
-      planName: (local as { plan_name?: string } | undefined)?.plan_name ?? t.kind,
+      planName: (t as { plan_name?: string }).plan_name ?? t.method ?? t.kind,
     };
   });
 
-  // Earnings come from Relworx when it answers, otherwise from the local ledger.
   const successRows = rows.filter((t) => t.status === "success");
-  const localSuccess = (q.data?.tx ?? []).filter((t) => t.status === "success");
-  const earned = (successRows.length ? successRows : localSuccess).reduce(
-    (s, t) => s + Number(t.amount),
-    0,
-  );
+  const earned = successRows.reduce((s, t) => s + Number(t.amount), 0);
   const balance = live.data ?? earned - paidOut;
   const chart = seriesByDay<{ created_at: string; amount: number }>(
-    successRows.length ? successRows : localSuccess,
+    successRows,
     21,
     (t) => Number(t.amount),
   );
