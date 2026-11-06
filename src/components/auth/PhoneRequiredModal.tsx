@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { fdb, nowIso } from "@/lib/fdb";
 import { digitsOnly } from "@/lib/firebase";
 import { accountPhone } from "@/lib/phone-country";
+import { hasMobileMoney } from "@/lib/countries";
 import type { CountryCode } from "libphonenumber-js";
 import { CountryPhoneInput } from "./CountryPhoneInput";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,6 +44,24 @@ export function PhoneRequiredModal({ open }: { open: boolean }) {
     }
   };
 
+  /** Countries without mobile money pay by card, so the number is optional. */
+  const skip = async () => {
+    if (!user) return;
+    setBusy(true);
+    try {
+      const { error } = await fdb
+        .from("profiles")
+        .update({ phone: "skipped", country_code: country, updated_at: nowIso() })
+        .eq("id", user.id);
+      if (error) throw error;
+      refresh();
+    } catch {
+      toast.error("Could not continue. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <Dialog open={open}>
       <DialogContent
@@ -74,6 +93,17 @@ export function PhoneRequiredModal({ open }: { open: boolean }) {
           >
             {busy ? "Saving…" : "Save and continue"}
           </button>
+
+          {!hasMobileMoney(country) && (
+            <button
+              type="button"
+              onClick={() => void skip()}
+              disabled={busy}
+              className="mt-2 h-11 w-full rounded-full text-[12.5px] font-semibold opacity-70 ring-1 ring-black/10 transition hover:opacity-100 disabled:opacity-40"
+            >
+              Skip — my country has no mobile money
+            </button>
+          )}
 
           <p className="mt-3 flex items-center justify-center gap-1.5 text-[10.5px] opacity-55">
             <ShieldCheck className="size-3" />
