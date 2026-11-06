@@ -328,7 +328,7 @@ export function SubscribeModal({
       try {
         const tx = await createPaymentIntent({ userId: user.id, plan, method, currency: country.currency, amount: localPrice });
         liveTx.current = tx;
-        const s = await startCardSession(tx);
+        const s = await startCardSession(tx, user.email ?? undefined);
         setCardSession(s.sessionId);
         setPhase("card");
         setStatus("Pay securely below — powered by Whop.");

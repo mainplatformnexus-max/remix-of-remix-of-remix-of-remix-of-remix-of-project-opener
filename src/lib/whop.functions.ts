@@ -8,6 +8,7 @@ const startSchema = z.object({
   planName: z.string().min(1),
   amount: z.number().positive(),
   currency: z.string().min(3).max(3),
+  email: z.string().email().optional(),
 });
 
 /** Starts a Whop card / Apple Pay / Google Pay checkout for a transaction. */

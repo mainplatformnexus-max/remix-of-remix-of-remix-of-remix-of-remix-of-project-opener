@@ -6,11 +6,10 @@ import { db as supabase } from "@/lib/db";
 import { fullDate, money, seriesByDay } from "@/lib/admin";
 import {
   allWalletBalances,
-  listRelworxTransactions,
   sendWithdrawal,
   walletBalance,
-  type RelworxTx,
 } from "@/lib/relworx";
+import { adminWhopPayments } from "@/lib/admin-payments.functions";
 import { COUNTRIES, countryByCurrency, formatAmount, normalizeFor } from "@/lib/countries";
 
 import { purgeTable } from "@/lib/fdb";
@@ -31,11 +30,12 @@ type Tx = {
   created_at: string;
 };
 
-/** A Relworx transaction joined with the local user and plan it paid for. */
-type MergedTx = RelworxTx & {
+/** A real payment (pawaPay / Whop / PayPal) joined with the user and plan. */
+type MergedTx = Tx & {
   userName: string;
   userEmail: string;
   planName: string;
+  liveStatus?: string | undefined;
 };
 
 async function loadWallet() {
@@ -85,39 +85,45 @@ export function WalletTab() {
 
   const profileOf = (uid: string | null) => (q.data?.profiles ?? []).find((p) => p.id === uid);
 
-  /* ---------- Relworx is the money source of truth ---------- */
-  const rw = useQuery({
-    queryKey: ["relworx-transactions"],
-    queryFn: listRelworxTransactions,
+  /* ---------- Real provider records: pawaPay / Whop / PayPal ---------- */
+  // Live card payments straight from Whop, matched to local transactions.
+  const whop = useQuery({
+    queryKey: ["whop-payments"],
+    queryFn: () => adminWhopPayments(),
     refetchInterval: 20_000,
     staleTime: 10_000,
   });
 
-  // Each Relworx row is matched to the local payment by reference so the admin
-  // sees who paid and which plan they bought.
-  const rows: MergedTx[] = (rw.data ?? []).map((t) => {
-    const local = (q.data?.tx ?? []).find(
-      (l) => l.reference === t.reference || String(l.id) === t.id,
-    );
-    const p = profileOf(local?.user_id ?? null);
+  // Every local transaction is a real payment record: mobile money deposits
+  // are confirmed live against pawaPay, card payments against Whop, and
+  // PayPal orders against PayPal — each row carries the provider reference.
+  const rows: MergedTx[] = (q.data?.tx ?? []).map((t) => {
+    const p = profileOf(t.user_id);
+    const liveCard = whop.data?.payments.find((w) => w.txId === String(t.id));
+    const liveStatus = liveCard
+      ? liveCard.refunded
+        ? "refunded"
+        : liveCard.status === "paid" && (!liveCard.substatus || liveCard.substatus === "succeeded")
+          ? "success"
+          : ["void", "uncollectible", "failed", "canceled", "cancelled"].includes(liveCard.status)
+            ? "failed"
+            : "pending"
+      : undefined;
     return {
       ...t,
-      userName: p?.display_name ?? p?.name ?? p?.email ?? t.msisdn ?? "Unknown user",
+      status: liveStatus ?? t.status,
+      liveStatus,
+      userName: p?.display_name ?? p?.name ?? p?.email ?? t.phone ?? "Unknown user",
       userEmail: p?.email ?? "—",
-      planName: (local as { plan_name?: string } | undefined)?.plan_name ?? t.kind,
+      planName: (t as { plan_name?: string }).plan_name ?? t.method ?? t.kind,
     };
   });
 
-  // Earnings come from Relworx when it answers, otherwise from the local ledger.
   const successRows = rows.filter((t) => t.status === "success");
-  const localSuccess = (q.data?.tx ?? []).filter((t) => t.status === "success");
-  const earned = (successRows.length ? successRows : localSuccess).reduce(
-    (s, t) => s + Number(t.amount),
-    0,
-  );
+  const earned = successRows.reduce((s, t) => s + Number(t.amount), 0);
   const balance = live.data ?? earned - paidOut;
   const chart = seriesByDay<{ created_at: string; amount: number }>(
-    successRows.length ? successRows : localSuccess,
+    successRows,
     21,
     (t) => Number(t.amount),
   );
@@ -176,7 +182,7 @@ export function WalletTab() {
       void qc.invalidateQueries({ queryKey: ["admin-overview"] });
       void qc.invalidateQueries({ queryKey: ["relworx-balance"] });
       void qc.invalidateQueries({ queryKey: ["relworx-balances"] });
-      void qc.invalidateQueries({ queryKey: ["relworx-transactions"] });
+      void qc.invalidateQueries({ queryKey: ["whop-payments"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -253,16 +259,16 @@ export function WalletTab() {
 
       <div className="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
         <Panel
-          title="Relworx transactions"
+          title="Payments"
           action={
             <div className="flex items-center gap-2">
               <span className="text-[11px] opacity-60">
-                {rw.isLoading ? "loading…" : rw.data == null ? "service offline" : `${rows.length} live`}
+                {q.isLoading ? "loading…" : `${rows.length} payments${whop.data?.ok ? " · card status live from Whop" : ""}`}
               </span>
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm("Delete every stored transaction from the database? Relworx keeps the real record."))
+                  if (confirm("Delete every stored transaction from the database? The payment providers keep the real record."))
                     purge.mutate();
                 }}
                 disabled={purge.isPending}
@@ -274,7 +280,7 @@ export function WalletTab() {
           }
         >
           {rows.length === 0 ? (
-            <Empty>{rw.data == null ? "Relworx is unreachable right now." : "No transactions yet."}</Empty>
+            <Empty>{q.isLoading ? "Loading payments…" : "No payments yet."}</Empty>
           ) : (
             <div className="space-y-2">
               {rows.map((t) => (
@@ -347,12 +353,12 @@ export function WalletTab() {
               {[
                 ["User", openTx.userName],
                 ["Email", openTx.userEmail],
-                ["Phone", openTx.msisdn ?? "—"],
+                ["Phone", openTx.phone ?? "—"],
                 ["Plan", openTx.planName],
-                ["Kind", openTx.kind],
+                ["Method", openTx.method ?? openTx.kind],
                 ["Reference", openTx.reference],
-                ["Relworx reference", openTx.internal_reference ?? "—"],
-                ["Status", openTx.status],
+                ["Provider reference", (openTx as { internal_reference?: string | null }).internal_reference ?? "—"],
+                ["Status", openTx.liveStatus ? `${openTx.status} (live)` : openTx.status],
                 ["Date", fullDate(openTx.created_at)],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-3 rounded-2xl bg-white/65 px-3 py-2">

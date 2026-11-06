@@ -275,7 +275,7 @@ export async function startCardCheckout(tx: Row) {
 }
 
 /** Same as startCardCheckout, but also returns the Whop session id for the embedded form. */
-export async function startCardSession(tx: Row) {
+export async function startCardSession(tx: Row, email?: string) {
   const res = await startWhopCheckout({
     data: {
       txId: String(tx.id),
@@ -283,6 +283,7 @@ export async function startCardSession(tx: Row) {
       planName: String(tx.plan_name ?? "Membership"),
       amount: Number(tx.amount),
       currency: String(tx.currency ?? CURRENCY_CODE).toUpperCase(),
+      ...(email ? { email } : {}),
     },
   });
   if (!res || !res.ok) throw new Error(res?.message || "Card payment could not start.");

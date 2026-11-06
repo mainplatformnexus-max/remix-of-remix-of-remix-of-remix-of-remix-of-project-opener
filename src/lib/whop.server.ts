@@ -51,6 +51,8 @@ export async function createWhopCheckout(input: {
   amount: number;
   currency: string;
   redirectUrl: string;
+  /** Pre-fills the buyer's email on Whop's checkout form. */
+  email?: string | undefined;
 }): Promise<WhopCheckoutSession> {
   const companyId = paymentKey("WHOP_COMPANY_ID");
   if (!companyId) throw new Error("Card payments need your Whop business ID to be set up.");
@@ -71,6 +73,7 @@ export async function createWhopCheckout(input: {
           title: `MOVIE MAX ${input.planName}`.slice(0, 60),
         },
         redirect_url: input.redirectUrl,
+        ...(input.email ? { customer_email: input.email } : {}),
         metadata: { tx_id: input.txId, reference: input.reference },
       }),
     });
