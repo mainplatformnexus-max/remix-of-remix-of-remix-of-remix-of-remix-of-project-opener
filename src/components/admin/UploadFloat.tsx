@@ -26,7 +26,10 @@ export function UploadFloat() {
           </div>
         ))}
       </div>
-      <Button size="sm" className="mt-3 w-full" onClick={() => void navigate({ to: "/admin", search: { upload: true } })}>
+      <Button size="sm" className="mt-3 w-full" onClick={async () => {
+        await navigate({ to: "/admin", search: { upload: true } });
+        window.dispatchEvent(new Event("open-upload-editor"));
+      }}>
         {tasks.every((task) => task.status === "complete") ? <><Pencil />Edit & publish</> : <><Eye />View upload</>}
       </Button>
     </aside>

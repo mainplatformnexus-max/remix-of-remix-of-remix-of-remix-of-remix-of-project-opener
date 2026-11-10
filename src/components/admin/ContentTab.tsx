@@ -168,6 +168,11 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
   const [sub, setSub] = useUploadDraft<Sub>(`${draftKey}:sub`, "movies");
   const [form, setForm] = useUploadDraft<Form | null>(`${draftKey}:form`, null);
   const [editorOpen, setEditorOpen] = useState(true);
+  useEffect(() => {
+    const open = () => setEditorOpen(true);
+    window.addEventListener("open-upload-editor", open);
+    return () => window.removeEventListener("open-upload-editor", open);
+  }, []);
   const uploading = useUploadTasks().some((task) => task.owner === userId && task.status === "uploading");
 
   const titles = useQuery({ queryKey: ["admin-titles"], queryFn: listAllLuoTitles });

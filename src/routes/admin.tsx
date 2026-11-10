@@ -63,6 +63,11 @@ function AdminPage() {
   const [tab, setTab] = useState<AdminTab>("overview");
   const { upload } = Route.useSearch();
   useEffect(() => { if (upload) setTab("content"); }, [upload]);
+  useEffect(() => {
+    const open = () => setTab("content");
+    window.addEventListener("open-upload-editor", open);
+    return () => window.removeEventListener("open-upload-editor", open);
+  }, []);
   const staffQ = useQuery({
     queryKey: ["my-staff-role", user?.id],
     enabled: !!user && !isAdmin && !checking,
