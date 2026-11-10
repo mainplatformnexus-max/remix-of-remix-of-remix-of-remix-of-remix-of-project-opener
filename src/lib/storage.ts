@@ -1,5 +1,6 @@
 import { getFbAuth } from "./firebase";
 import { uploadToR2, type UploadProgress } from "./r2-upload";
+import { beginUpload, updateUpload } from "./upload-session";
 
 export type { UploadProgress };
 
@@ -46,10 +47,20 @@ export async function uploadFile(
   file: File,
   onProgress?: (p: UploadProgress) => void,
 ): Promise<string> {
-  if (!getFbAuth().currentUser) throw new Error("You must be signed in to upload.");
+  const user = getFbAuth().currentUser;
+  if (!user) throw new Error("You must be signed in to upload.");
+  const task = beginUpload(user.uid, file.name, file.size);
   const release = await keepAwake();
   try {
-    return await uploadToR2(`media/${folder}`, file, onProgress);
+    const url = await uploadToR2(`media/${folder}`, file, (progress) => {
+      updateUpload(task, progress);
+      onProgress?.(progress);
+    });
+    updateUpload(task, { status: "complete", loaded: file.size, percent: 100 });
+    return url;
+  } catch (error) {
+    updateUpload(task, { status: "error", error: error instanceof Error ? error.message : "Upload failed" });
+    throw error;
   } finally {
     release();
   }
