@@ -45,19 +45,9 @@ export async function ensureProfile(user: User, extra?: { name?: string; phone?:
     };
     if (existing) await fdb.from("profiles").update(base).eq("id", user.uid);
     else await fdb.from("profiles").insert({ ...base, created_at: nowIso() });
-    await ensureRole(user.uid, user.email, extra?.phone ?? (existing?.phone as string | undefined));
   } catch {
     /* profile writes must never block sign-in */
   }
-}
-
-export async function ensureRole(uid: string, email?: string | null, phone?: string | null) {
-  const role = isAdminCredential(email, phone) ? "admin" : "user";
-  const { data } = await fdb.from("user_roles").select("*").eq("user_id", uid).maybeSingle();
-  if (!data) await fdb.from("user_roles").insert({ id: uuid(), user_id: uid, role, created_at: nowIso() });
-  else if (data.role !== role && role === "admin")
-    await fdb.from("user_roles").update({ role }).eq("id", String(data.id));
-  return role;
 }
 
 export async function hasAdminRole(uid: string) {
@@ -150,16 +140,3 @@ export const db = {
 
 export { fdb, nowIso, uuid };
 
-/** Serverless bootstrap: the first signed-in user can take the admin seat. */
-export async function claimFirstAdmin() {
-  const user = getFbAuth().currentUser;
-  if (!user) throw new Error("Sign in first");
-  const { data: roles, error } = await fdb.from("user_roles").select("*").eq("role", "admin");
-  if (error) throw error;
-  if (roles.some((r) => r.user_id !== user.uid)) return false;
-  await ensureProfile(user);
-  const { data: mine } = await fdb.from("user_roles").select("*").eq("user_id", user.uid).maybeSingle();
-  if (mine) await fdb.from("user_roles").update({ role: "admin" }).eq("id", String(mine.id));
-  else await fdb.from("user_roles").insert({ id: uuid(), user_id: user.uid, role: "admin", created_at: nowIso() });
-  return true;
-}

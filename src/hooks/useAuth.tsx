@@ -9,7 +9,7 @@ import {
 } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { getFbAuth, initAnalytics } from "@/lib/firebase";
-import { db, ensureProfile, hasAdminRole, isAdminCredential, type SessionUser } from "@/lib/db";
+import { db, ensureProfile, hasAdminRole, type SessionUser } from "@/lib/db";
 import { fdb } from "@/lib/fdb";
 import { disableGoogleAutoSelect, startGoogleOneTap } from "@/lib/google-one-tap";
 
@@ -53,17 +53,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       setUser({ id: fbUser.uid, email: fbUser.email, name: fbUser.displayName });
-      // Credential check first, so the admin gets in even if Firestore hiccups.
-      setIsAdmin(isAdminCredential(fbUser.email));
-      setLoading(false);
+      setIsAdmin(false);
+      setLoading(true);
       void (async () => {
+        const admin = await hasAdminRole(fbUser.uid).catch(() => false);
+        if (getFbAuth().currentUser?.uid !== fbUser.uid) return;
+        setIsAdmin(admin);
+        setLoading(false);
         await ensureProfile(fbUser);
         const { data } = await fdb.from("profiles").select("*").eq("id", fbUser.uid).maybeSingle();
         setProfile(data as Profile | null);
-        const admin =
-          isAdminCredential(fbUser.email, (data?.phone as string | undefined) ?? null) ||
-          (await hasAdminRole(fbUser.uid).catch(() => false));
-        setIsAdmin(admin);
       })().catch(() => {});
     });
     return stop;
