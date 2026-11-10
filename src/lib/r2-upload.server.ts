@@ -1,6 +1,6 @@
 // Server-only (this .server.ts file is never bundled for the browser).
 const UPLOAD_TOKEN = "*";
-export const UPLOAD_BACKEND = "https://r2upload.nexusplatformafrica.workers.dev";
+export const UPLOAD_BACKEND = "https://moviemax-upload.nexusplatformafrica.workers.dev";
 
 /** Forwards a signing request to the upload backend with the server-only UPLOAD_TOKEN. */
 export async function callUploadBackend(path: string, body: unknown): Promise<Response> {

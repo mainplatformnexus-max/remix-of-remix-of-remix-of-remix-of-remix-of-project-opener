@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Switch upload service, tune parallel transfers, preserve upload drafts across navigation, and add a corner progress window with View/Edit and publishing.
 - [x] Add searchable signup country flags and admin country display; match Latest and home cover VJ colours to VJ pages. Country selection and images checked at desktop/mobile, seven tests passed.
 - [ ] Verify signup country save and admin readback with an authenticated account (blocked: no signed-in Firebase account available).
 

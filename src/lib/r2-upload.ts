@@ -5,8 +5,8 @@ const FOLDERS = new Set(["media/admin", "media/channels", "media/artists"]);
 const CAPPED = new Set(["media/channels", "media/artists"]);
 
 export type UploadProgress = { loaded: number; total: number; percent: number };
-const PART_SIZE = 32 * 1024 * 1024;
-const CONCURRENCY = 8;
+const PART_SIZE = 16 * 1024 * 1024;
+const CONCURRENCY = 12;
 const MAX_RETRIES = 5;
 
 async function api<T>(action: string, body: unknown): Promise<T> {
@@ -43,6 +43,9 @@ function put(url: string, blob: Blob, onProgress: (loaded: number) => void, cont
       ? resolve((xhr.getResponseHeader("ETag") || "").replace(/"/g, ""))
       : reject(new Error(`Storage rejected upload (${xhr.status})`));
     xhr.onerror = () => reject(new Error("Network error while uploading (check bucket CORS)"));
+    xhr.timeout = 180000;
+    xhr.ontimeout = () => reject(new Error("Upload connection timed out; retrying part"));
+    xhr.onabort = () => reject(new Error("Upload connection interrupted"));
     xhr.send(blob);
   });
 }
@@ -60,6 +63,7 @@ export async function uploadToR2(folder: string, file: File, onProgress?: (p: Up
     return retry(async () => {
       const { url, publicUrl } = await api<{ url: string; publicUrl: string }>("single", { filename: file.name, folder, size: file.size });
       await put(url, file, (l) => { progress.set(0, l); report(); });
+      progress.set(0, file.size); report();
       return publicUrl;
     });
   }
@@ -78,10 +82,17 @@ export async function uploadToR2(folder: string, file: File, onProgress?: (p: Up
     let next = 0;
     const worker = async () => {
       while (next < numbers.length) {
-        const n = numbers[next++]!;
+        const n = numbers[next++];
+        if (n === undefined) return;
         const blob = file.slice((n - 1) * PART_SIZE, Math.min(n * PART_SIZE, file.size));
-        const etag = await retry(() => put(urls.get(n)!, blob, (l) => { progress.set(n, l); report(); }));
+        const url = urls.get(n);
+        if (!url) throw new Error(`Missing upload URL for part ${n}`);
+        const etag = await retry(() => {
+          progress.set(n, 0); report();
+          return put(url, blob, (l) => { progress.set(n, l); report(); });
+        });
         if (!etag) throw new Error("Storage did not return ETag (expose ETag in bucket CORS)");
+        progress.set(n, blob.size); report();
         parts.push({ partNumber: n, etag });
       }
     };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fdb } from "@/lib/fdb";
 import { TeamTab } from "@/components/admin/TeamTab";
@@ -23,6 +23,7 @@ import { ChannelsTab } from "@/components/admin/ChannelsTab";
 import { SOFT_BG, goldBtn } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/admin")({
+  validateSearch: (search: Record<string, unknown>): { upload?: boolean } => ({ upload: search.upload === true || search.upload === "true" ? true : undefined }),
   head: () => ({
     meta: [
       { title: "Admin Dashboard — MOVIE MAX" },
@@ -60,11 +61,14 @@ const STAFF_TABS: AdminTab[] = ["overview", "users", "content", "hero"];
 function AdminPage() {
   const { isAdmin, checking, user } = useIsAdmin();
   const [tab, setTab] = useState<AdminTab>("overview");
+  const { upload } = Route.useSearch();
+  useEffect(() => { if (upload) setTab("content"); }, [upload]);
   const staffQ = useQuery({
     queryKey: ["my-staff-role", user?.id],
     enabled: !!user && !isAdmin && !checking,
     queryFn: async () => {
-      const { data } = await fdb.from("user_roles").select("*").eq("user_id", user!.id).maybeSingle();
+      if (!user) return false;
+      const { data } = await fdb.from("user_roles").select("*").eq("user_id", user.id).maybeSingle();
       return data?.role === "staff";
     },
   });

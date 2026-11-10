@@ -22,6 +22,7 @@ import { LiveSync } from "@/components/LiveSync";
 import { RouteProgress } from "@/components/youku/RouteProgress";
 import { ActivityTracker } from "@/components/ActivityTracker";
 import { PaymentKeepAlive } from "@/components/PaymentKeepAlive";
+import { UploadFloat } from "@/components/admin/UploadFloat";
 
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { registerDownloadWorker } from "@/lib/download";
@@ -167,6 +168,7 @@ function RootComponent() {
       <PaymentKeepAlive />
       <RouteProgress />
       <AuthProvider>
+        <UploadFloat />
         <ActivityTracker />
         <SubscriptionProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}

@@ -17,6 +17,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Empty, Panel, Pill, ghostBtn, goldBtn, softField } from "./ui";
 import { ExternalLatest } from "./ExternalLatest";
+import { useUploadDraft, useUploadTasks } from "@/lib/upload-session";
 
 type Kind = "movie" | "series";
 type Sub = "movies" | "series" | "episodes";
@@ -44,15 +45,17 @@ function MediaInput({
   value,
   onChange,
   accept,
+  draftKey,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   accept: string;
+  draftKey: string;
 }) {
-  const [mode, setMode] = useState<"url" | "file">("url");
-  const [pct, setPct] = useState<number | null>(null);
-  const [active, setActive] = useState<{ name: string; size: number } | null>(null);
+  const [mode, setMode] = useUploadDraft<"url" | "file">(`${draftKey}:mode`, "url");
+  const [pct, setPct] = useUploadDraft<number | null>(`${draftKey}:pct`, null);
+  const [active, setActive] = useUploadDraft<{ name: string; size: number } | null>(`${draftKey}:file`, null);
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
@@ -100,6 +103,7 @@ function MediaInput({
         <input
           type="file"
           accept={accept}
+          disabled={pct !== null && pct < 100}
           className="w-full cursor-pointer rounded-2xl bg-white/70 p-2.5 text-[12px] ring-1 ring-black/5 file:mr-3 file:rounded-full file:border-0 file:bg-[linear-gradient(100deg,oklch(0.96_0.05_95),oklch(0.9_0.1_80))] file:px-3 file:py-1.5 file:text-[12px] file:font-bold"
           onChange={async (e) => {
             const f = e.target.files?.[0];
@@ -160,8 +164,10 @@ function MediaInput({
 
 export function ContentTab({ userId, restricted = false }: { userId?: string; restricted?: boolean }) {
   const qc = useQueryClient();
-  const [sub, setSub] = useState<Sub>("movies");
-  const [form, setForm] = useState<Form | null>(null);
+  const draftKey = `content:${userId ?? "signed-out"}`;
+  const [sub, setSub] = useUploadDraft<Sub>(`${draftKey}:sub`, "movies");
+  const [form, setForm] = useUploadDraft<Form | null>(`${draftKey}:form`, null);
+  const uploading = useUploadTasks().some((task) => task.owner === userId && task.status === "uploading");
 
   const titles = useQuery({ queryKey: ["admin-titles"], queryFn: listAllLuoTitles });
   const movies = (titles.data ?? []).filter((t) => t.kind !== "series");
@@ -261,7 +267,7 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
       </div>
 
       {sub === "episodes" ? (
-        <EpisodesManager series={series} restricted={restricted} />
+        <EpisodesManager series={series} restricted={restricted} draftKey={draftKey} uploading={uploading} />
       ) : (
         <Panel
           title={`${sub === "movies" ? "Uploaded movies" : "Uploaded series"} · ${list.length}`}
@@ -335,6 +341,7 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
               className="space-y-3"
               onSubmit={(e) => {
                 e.preventDefault();
+                if (uploading) return toast.error("Wait for uploads to finish before publishing");
                 save.mutate(form);
               }}
             >
@@ -360,10 +367,10 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
                 </label>
               </div>
 
-              <MediaInput label="Poster image" accept="image/*" value={form.poster_url} onChange={(v) => setForm({ ...form, poster_url: v })} />
-              <MediaInput label="Backdrop image" accept="image/*" value={form.backdrop_url} onChange={(v) => setForm({ ...form, backdrop_url: v })} />
+              <MediaInput draftKey={`${draftKey}:poster`} label="Poster image" accept="image/*" value={form.poster_url} onChange={(v) => setForm((current) => current ? { ...current, poster_url: v } : current)} />
+              <MediaInput draftKey={`${draftKey}:backdrop`} label="Backdrop image" accept="image/*" value={form.backdrop_url} onChange={(v) => setForm((current) => current ? { ...current, backdrop_url: v } : current)} />
               {form.kind === "movie" ? (
-                <MediaInput label="Movie video" accept="video/*" value={form.video_url} onChange={(v) => setForm({ ...form, video_url: v })} />
+                <MediaInput draftKey={`${draftKey}:video`} label="Movie video" accept="video/*" value={form.video_url} onChange={(v) => setForm((current) => current ? { ...current, video_url: v } : current)} />
               ) : (
                 <p className="rounded-2xl bg-white/60 px-4 py-3 text-[12px] opacity-65">
                   Series only need images here — videos are added per episode in the Episodes tab.
@@ -378,7 +385,7 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
               />
 
               <div className="flex gap-2">
-                <button type="submit" disabled={save.isPending} className={`${goldBtn} flex-1`}>
+                <button type="submit" disabled={save.isPending || uploading} className={`${goldBtn} flex-1`}>
                   {form.id ? "Save changes" : "Publish"}
                 </button>
                 <button type="button" onClick={() => setForm(null)} className={ghostBtn}>
@@ -393,11 +400,11 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
   );
 }
 
-function EpisodesManager({ series, restricted = false }: { series: LuoTitle[]; restricted?: boolean }) {
+function EpisodesManager({ series, restricted = false, draftKey, uploading }: { series: LuoTitle[]; restricted?: boolean; draftKey: string; uploading: boolean }) {
   const qc = useQueryClient();
-  const [titleId, setTitleId] = useState("");
+  const [titleId, setTitleId] = useUploadDraft(`${draftKey}:series`, "");
   const active = titleId || series[0]?.id || "";
-  const [ep, setEp] = useState({ id: "", season: "1", episode: "1", name: "", video_url: "" });
+  const [ep, setEp] = useUploadDraft(`${draftKey}:episode`, { id: "", season: "1", episode: "1", name: "", video_url: "" });
 
   const eps = useQuery({
     queryKey: ["admin-episodes", active],
@@ -460,10 +467,10 @@ function EpisodesManager({ series, restricted = false }: { series: LuoTitle[]; r
         </div>
         <input className={`${softField} mt-2`} placeholder="Episode name (optional)" value={ep.name} onChange={(e) => setEp({ ...ep, name: e.target.value })} />
         <div className="mt-2">
-          <MediaInput label="Episode video" accept="video/*" value={ep.video_url} onChange={(v) => setEp({ ...ep, video_url: v })} />
+          <MediaInput draftKey={`${draftKey}:episode-video`} label="Episode video" accept="video/*" value={ep.video_url} onChange={(v) => setEp((current) => ({ ...current, video_url: v }))} />
         </div>
         <div className="mt-3 flex gap-2">
-          <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className={`${goldBtn} flex-1`}>
+          <button type="button" onClick={() => save.mutate()} disabled={save.isPending || uploading} className={`${goldBtn} flex-1`}>
             {ep.id ? "Save episode" : "Add episode"}
           </button>
           {ep.id && (
