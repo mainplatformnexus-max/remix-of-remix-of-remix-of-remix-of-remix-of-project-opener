@@ -2,14 +2,13 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fdb } from "@/lib/fdb";
 import { TeamTab } from "@/components/admin/TeamTab";
-import { createFileRoute } from "@tanstack/react-router";
-import { toast } from "sonner";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { UserCog, LayoutDashboard, Users, Film, Wallet, Settings, ShieldCheck, MessageCircle, Sparkles, MonitorPlay, Music2, MicVocal } from "lucide-react";
 import { Sidebar } from "@/components/youku/Sidebar";
 import { TopBar } from "@/components/youku/TopBar";
 import { MobileNav } from "@/components/youku/MobileNav";
 import { useIsAdmin } from "@/hooks/useAuth";
-import { claimFirstAdmin } from "@/lib/db";
+import { assignedAdminRole } from "@/lib/admin-access";
 import { Overview, type AdminTab } from "@/components/admin/Overview";
 import { UsersTab } from "@/components/admin/UsersTab";
 import { ContentTab } from "@/components/admin/ContentTab";
@@ -20,9 +19,19 @@ import { HeroTab } from "@/components/admin/HeroTab";
 import { MusicHeroTab } from "@/components/admin/MusicHeroTab";
 import { ArtistsTab } from "@/components/admin/ArtistsTab";
 import { ChannelsTab } from "@/components/admin/ChannelsTab";
-import { SOFT_BG, goldBtn } from "@/components/admin/ui";
+import { SOFT_BG } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/admin")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { getFbAuth } = await import("@/lib/firebase");
+    const auth = getFbAuth();
+    await auth.authStateReady();
+    const user = auth.currentUser;
+    if (!user) throw redirect({ to: "/", replace: true });
+    const { data, error } = await fdb.from("user_roles").select("*").eq("user_id", user.uid).maybeSingle();
+    if (error || !assignedAdminRole(data?.role)) throw redirect({ to: "/", replace: true });
+  },
   validateSearch: (search: Record<string, unknown>): { upload?: boolean } => search["upload"] === true || search["upload"] === "true" ? { upload: true } : {},
   head: () => ({
     meta: [
@@ -105,36 +114,7 @@ function AdminPage() {
 
             {checking || (!isAdmin && !!user && staffQ.isLoading) ? (
               <p className="py-16 text-center text-[13px] opacity-60">Checking access…</p>
-            ) : !user ? (
-              <p className="py-16 text-center text-[13px] opacity-70">
-                Sign in with the Login button above to open the dashboard.
-              </p>
-            ) : !canOpen ? (
-              <div className="py-16 text-center">
-                <p className="text-[13px] opacity-70">
-                  This account is not an admin yet. If no admin exists, claim it now.
-                </p>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const ok = await claimFirstAdmin();
-                      if (!ok) {
-                        toast.error("An admin already exists.");
-                        return;
-                      }
-                      toast.success("You are now the admin");
-                      window.location.reload();
-                    } catch (err) {
-                      toast.error(err instanceof Error ? err.message : "Could not claim admin access");
-                    }
-                  }}
-                  className={`${goldBtn} mt-4`}
-                >
-                  Claim admin access
-                </button>
-              </div>
-            ) : (
+            ) : !user || !canOpen ? null : (
               <>
                 <nav className="mt-5 flex flex-wrap gap-1.5 rounded-full bg-white/60 p-1.5 ring-1 ring-black/5">
                   {tabs.map((t) => (
