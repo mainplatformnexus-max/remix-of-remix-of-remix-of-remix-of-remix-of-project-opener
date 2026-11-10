@@ -167,6 +167,7 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
   const draftKey = `content:${userId ?? "signed-out"}`;
   const [sub, setSub] = useUploadDraft<Sub>(`${draftKey}:sub`, "movies");
   const [form, setForm] = useUploadDraft<Form | null>(`${draftKey}:form`, null);
+  const [editorOpen, setEditorOpen] = useState(true);
   const uploading = useUploadTasks().some((task) => task.owner === userId && task.status === "uploading");
 
   const titles = useQuery({ queryKey: ["admin-titles"], queryFn: listAllLuoTitles });
@@ -224,7 +225,11 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const openNew = (kind: Kind) => setForm({ ...emptyForm, kind });
+  const openNew = (kind: Kind) => {
+    setEditorOpen(true);
+    if (form && uploading) return;
+    setForm({ ...emptyForm, kind });
+  };
   const openEdit = (t: LuoTitle) =>
     setForm({
       id: t.id,
@@ -328,7 +333,8 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
         </Panel>
       )}
 
-      <Dialog open={!!form} onOpenChange={(v) => !v && setForm(null)}>
+      {form && !editorOpen && <button type="button" className={goldBtn} onClick={() => setEditorOpen(true)}>Resume upload / edit</button>}
+      <Dialog open={!!form && editorOpen} onOpenChange={setEditorOpen}>
         {/* Fixed rectangle: the width never reacts to a long pasted link. */}
         <DialogContent className="grid max-h-[88vh] w-[calc(100vw-1.5rem)] max-w-[calc(100vw-1.5rem)] grid-cols-1 overflow-y-auto overflow-x-hidden rounded-2xl border-0 bg-[linear-gradient(165deg,oklch(0.98_0.02_20),oklch(0.97_0.03_320)_55%,oklch(0.98_0.03_80))] p-4 text-[oklch(0.28_0.03_320)] sm:w-[640px] sm:max-w-[640px] sm:p-6">
           <DialogHeader>
@@ -341,8 +347,8 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
               className="space-y-3"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (uploading) return toast.error("Wait for uploads to finish before publishing");
-                save.mutate(form);
+                if (uploading) toast.error("Wait for uploads to finish before publishing");
+                else save.mutate(form);
               }}
             >
               <input className={softField} required placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -388,7 +394,7 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
                 <button type="submit" disabled={save.isPending || uploading} className={`${goldBtn} flex-1`}>
                   {form.id ? "Save changes" : "Publish"}
                 </button>
-                <button type="button" onClick={() => setForm(null)} className={ghostBtn}>
+                <button type="button" onClick={() => setEditorOpen(false)} className={ghostBtn}>
                   <X className="size-4" />
                 </button>
               </div>

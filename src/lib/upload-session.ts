@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useRef, useSyncExternalStore } from "react";
 
 export type UploadTask = {
   id: string; owner: string; name: string; size: number; loaded: number;
@@ -10,6 +10,7 @@ const emit = () => listeners.forEach((listener) => listener());
 const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
 const emptyTasks: UploadTask[] = [];
 export const useUploadTasks = () => useSyncExternalStore(subscribe, () => tasks, () => emptyTasks);
+export const getUploadTasks = () => tasks;
 export function beginUpload(owner: string, name: string, size: number) {
   const id = crypto.randomUUID();
   tasks = [...tasks, { id, owner, name, size, loaded: 0, percent: 0, started: Date.now(), status: "uploading" }];
@@ -28,7 +29,8 @@ export function dismissUpload(id: string) {
 /** In-tab drafts deliberately outlive route components; files are never persisted in browser storage. */
 const drafts = new Map<string, unknown>();
 export function useUploadDraft<T>(key: string, initial: T): [T, (value: T | ((previous: T) => T)) => void] {
-  const value = useSyncExternalStore(subscribe, () => (drafts.has(key) ? drafts.get(key) : initial) as T, () => initial);
+  const fallback = useRef(initial).current;
+  const value = useSyncExternalStore(subscribe, () => (drafts.has(key) ? drafts.get(key) : fallback) as T, () => fallback);
   const set = (next: T | ((previous: T) => T)) => {
     const previous = (drafts.has(key) ? drafts.get(key) : initial) as T;
     drafts.set(key, typeof next === "function" ? (next as (previous: T) => T)(previous) : next);
