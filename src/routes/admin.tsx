@@ -23,7 +23,7 @@ import { ChannelsTab } from "@/components/admin/ChannelsTab";
 import { SOFT_BG, goldBtn } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/admin")({
-  validateSearch: (search: Record<string, unknown>): { upload: boolean } => ({ upload: search["upload"] === true || search["upload"] === "true" }),
+  validateSearch: (search: Record<string, unknown>): { upload?: boolean } => search["upload"] === true || search["upload"] === "true" ? { upload: true } : {},
   head: () => ({
     meta: [
       { title: "Admin Dashboard — MOVIE MAX" },
