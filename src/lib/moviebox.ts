@@ -44,7 +44,7 @@ const WEB_REFERER =
  * sources. On Cloudflare, web BFF calls therefore use raw sockets
  * (socket-fetch.ts). Optional: set a non-Cloudflare relay (docs/moviebox-relay).
  */
-export const MOVIEBOX_RELAY: string = "https://smoky-penguin-8969.nexusplatformafrica.deno.net";
+export const MOVIEBOX_RELAY: string = "https://function-bun-production-dfedb5e6.up.railway.app";
 
 const RETRY_STATUS = new Set([403, 406, 407, 408, 425, 429, 500, 502, 503, 504]);
 
