@@ -6,7 +6,11 @@ const BASE =
   "https://firestore.googleapis.com/v1/projects/luo-film-2026/databases/(default)/documents";
 const KEY = "AIzaSyBTSFk7GSITIHQ9WxSdi1BoVvcr4FXuZe0";
 
-type FsValue = Record<string, unknown>;
+type FsValue = {
+  stringValue?: string; integerValue?: string; doubleValue?: number; booleanValue?: boolean;
+  timestampValue?: string; nullValue?: null; arrayValue?: { values?: FsValue[] };
+  mapValue?: { fields?: Record<string, FsValue> };
+};
 
 export function fromFirestoreValue(v: FsValue | undefined): unknown {
   if (!v) return null;
@@ -17,10 +21,10 @@ export function fromFirestoreValue(v: FsValue | undefined): unknown {
   if ("timestampValue" in v) return v.timestampValue;
   if ("nullValue" in v) return null;
   if ("arrayValue" in v) {
-    const values = (v.arrayValue as { values?: FsValue[] }).values ?? [];
+    const values = v.arrayValue?.values ?? [];
     return values.map(fromFirestoreValue);
   }
-  if ("mapValue" in v) return fromFirestoreFields((v.mapValue as { fields?: Record<string, FsValue> }).fields);
+  if ("mapValue" in v) return fromFirestoreFields(v.mapValue?.fields);
   return null;
 }
 

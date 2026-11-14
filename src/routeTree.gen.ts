@@ -48,6 +48,7 @@ import { Route as ApiPublicStreamRouteImport } from './routes/api/public/stream'
 import { Route as ApiPublicSubtitleRouteImport } from './routes/api/public/subtitle'
 import { Route as PProviderIndexRouteImport } from './routes/p.$provider.index'
 import { Route as PProviderIdRouteImport } from './routes/p.$provider.$id'
+import { Route as ApiPublicV1SplatRouteImport } from './routes/api/public/v1/$'
 import { Route as LugandaNaraboxKindIdRouteImport } from './routes/luganda.narabox.$kind.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -246,6 +247,11 @@ const PProviderIdRoute = PProviderIdRouteImport.update({
   path: '/p/$provider/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1SplatRoute = ApiPublicV1SplatRouteImport.update({
+  id: '/api/public/v1/$',
+  path: '/api/public/v1/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LugandaNaraboxKindIdRoute = LugandaNaraboxKindIdRouteImport.update({
   id: '/luganda/narabox/$kind/$id',
   path: '/luganda/narabox/$kind/$id',
@@ -292,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/api/public/subtitle': typeof ApiPublicSubtitleRoute
   '/p/$provider/$id': typeof PProviderIdRoute
   '/p/$provider/': typeof PProviderIndexRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
   '/luganda/narabox/$kind/$id': typeof LugandaNaraboxKindIdRoute
 }
 export interface FileRoutesByTo {
@@ -334,6 +341,7 @@ export interface FileRoutesByTo {
   '/api/public/subtitle': typeof ApiPublicSubtitleRoute
   '/p/$provider/$id': typeof PProviderIdRoute
   '/p/$provider': typeof PProviderIndexRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
   '/luganda/narabox/$kind/$id': typeof LugandaNaraboxKindIdRoute
 }
 export interface FileRoutesById {
@@ -377,6 +385,7 @@ export interface FileRoutesById {
   '/api/public/subtitle': typeof ApiPublicSubtitleRoute
   '/p/$provider/$id': typeof PProviderIdRoute
   '/p/$provider/': typeof PProviderIndexRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
   '/luganda/narabox/$kind/$id': typeof LugandaNaraboxKindIdRoute
 }
 export interface FileRouteTypes {
@@ -421,6 +430,7 @@ export interface FileRouteTypes {
     | '/api/public/subtitle'
     | '/p/$provider/$id'
     | '/p/$provider/'
+    | '/api/public/v1/$'
     | '/luganda/narabox/$kind/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -463,6 +473,7 @@ export interface FileRouteTypes {
     | '/api/public/subtitle'
     | '/p/$provider/$id'
     | '/p/$provider'
+    | '/api/public/v1/$'
     | '/luganda/narabox/$kind/$id'
   id:
     | '__root__'
@@ -505,6 +516,7 @@ export interface FileRouteTypes {
     | '/api/public/subtitle'
     | '/p/$provider/$id'
     | '/p/$provider/'
+    | '/api/public/v1/$'
     | '/luganda/narabox/$kind/$id'
   fileRoutesById: FileRoutesById
 }
@@ -548,6 +560,7 @@ export interface RootRouteChildren {
   ApiPublicSubtitleRoute: typeof ApiPublicSubtitleRoute
   PProviderIdRoute: typeof PProviderIdRoute
   PProviderIndexRoute: typeof PProviderIndexRoute
+  ApiPublicV1SplatRoute: typeof ApiPublicV1SplatRoute
   LugandaNaraboxKindIdRoute: typeof LugandaNaraboxKindIdRoute
 }
 
@@ -826,6 +839,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PProviderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/$': {
+      id: '/api/public/v1/$'
+      path: '/api/public/v1/$'
+      fullPath: '/api/public/v1/$'
+      preLoaderRoute: typeof ApiPublicV1SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/luganda/narabox/$kind/$id': {
       id: '/luganda/narabox/$kind/$id'
       path: '/luganda/narabox/$kind/$id'
@@ -876,6 +896,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSubtitleRoute: ApiPublicSubtitleRoute,
   PProviderIdRoute: PProviderIdRoute,
   PProviderIndexRoute: PProviderIndexRoute,
+  ApiPublicV1SplatRoute: ApiPublicV1SplatRoute,
   LugandaNaraboxKindIdRoute: LugandaNaraboxKindIdRoute,
 }
 export const routeTree = rootRouteImport
