@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Save, Link2, DatabaseZap } from "lucide-react";
+import { Save, Link2, DatabaseZap, Radio, CheckCircle2, XCircle } from "lucide-react";
+import { DEFAULT_MOVIE_RELAY, MOVIE_RELAY_KEY, normalizeRelayUrl } from "@/lib/movie-relay";
+import { refreshMovieRelay, testMovieRelay, type RelayCheck } from "@/lib/movie-relay.functions";
 import {
   DEFAULT_PLANS,
   getSetting,
@@ -60,6 +62,7 @@ export function SettingsTab() {
 
   return (
     <div className="space-y-5">
+      <MovieRelayPanel />
       <Panel
         title="Subscription prices"
         action={
@@ -166,5 +169,94 @@ export function SettingsTab() {
         </div>
       </Panel>
     </div>
+  );
+}
+
+/** Admin-editable movie relay address used for playback and downloads. */
+function MovieRelayPanel() {
+  const qc = useQueryClient();
+  const relayQ = useQuery({
+    queryKey: ["movie-relay"],
+    queryFn: () => getSetting<string>(MOVIE_RELAY_KEY, DEFAULT_MOVIE_RELAY),
+  });
+  const [url, setUrl] = useState("");
+  const [check, setCheck] = useState<RelayCheck | null>(null);
+  useEffect(() => {
+    if (relayQ.data) setUrl(relayQ.data);
+  }, [relayQ.data]);
+
+  const test = useMutation({
+    mutationFn: () => testMovieRelay({ data: { url } }),
+    onSuccess: (r) => setCheck(r),
+    onError: (e: Error) => setCheck({ ok: false, message: e.message }),
+  });
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const clean = normalizeRelayUrl(url);
+      if (!clean) throw new Error("Enter a full https:// address.");
+      const r = await testMovieRelay({ data: { url: clean } });
+      setCheck(r);
+      if (!r.ok) throw new Error(r.message);
+      await saveSetting(MOVIE_RELAY_KEY, clean);
+      await refreshMovieRelay().catch(() => undefined);
+      setUrl(clean);
+    },
+    onSuccess: () => {
+      toast.success("Movie relay saved — playback now uses it");
+      void qc.invalidateQueries({ queryKey: ["movie-relay"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Panel
+      title="Movie relay (playback & downloads)"
+      action={
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => test.mutate()}
+            disabled={test.isPending || save.isPending}
+            className="inline-flex items-center gap-2 rounded-full border border-current/20 px-4 py-2 text-[13px] font-semibold"
+          >
+            <Radio className="size-4" /> {test.isPending ? "Testing…" : "Test"}
+          </button>
+          <button
+            type="button"
+            onClick={() => save.mutate()}
+            disabled={save.isPending}
+            className={`${goldBtn} inline-flex items-center gap-2`}
+          >
+            <Save className="size-4" /> {save.isPending ? "Saving…" : "Save relay"}
+          </button>
+        </div>
+      }
+    >
+      <div className="space-y-3">
+        <label className="block">
+          <span className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold opacity-70">
+            <Link2 className="size-3.5" /> Relay address
+          </span>
+          <input
+            className={softField}
+            placeholder={DEFAULT_MOVIE_RELAY}
+            value={url}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setCheck(null);
+            }}
+          />
+        </label>
+        {check && (
+          <p className={`flex items-center gap-2 text-[12px] font-semibold ${check.ok ? "text-primary" : "text-destructive"}`}>
+            {check.ok ? <CheckCircle2 className="size-4" /> : <XCircle className="size-4" />} {check.message}
+          </p>
+        )}
+        <p className="text-[11px] opacity-55">
+          Saving tests the address first and only keeps it if MovieBox answers through it. The live site switches within a minute.
+        </p>
+      </div>
+    </Panel>
   );
 }
