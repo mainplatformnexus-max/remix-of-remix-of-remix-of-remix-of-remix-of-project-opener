@@ -52,11 +52,12 @@ async function checkMovieFile(relay: string): Promise<RelayCheck> {
   }
   const movie = items.find((i) => i.type === "movie");
   if (!movie) return { ok: false, message: "Relay passes MovieBox requests, but no movie was found to test the file stream." };
-  const details = await fetchDetails(String(movie.id));
-  const sources = await fetchSources(String(movie.id), 0, 0, details.detailPath);
-  if (!sources.length) return { ok: false, message: "Relay passes MovieBox requests, but no movie file was available to test." };
+  await fetchDetails(String(movie.id));
+  const sources = await fetchSources(String(movie.id));
+  const first = sources[0];
+  if (!first) return { ok: false, message: "Relay passes MovieBox requests, but no movie file was available to test." };
   const domain = (await getMediaDomain()).replace(/\/+$/, "");
-  const res = await fetch(relayRequestUrl(relay, sources[0].url), {
+  const res = await fetch(relayRequestUrl(relay, first.url), {
     headers: {
       "user-agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
