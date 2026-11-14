@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MOVIEBOX_RELAY, fetchFreshSources, fetchSources, getMediaDomain } from "@/lib/moviebox";
+import { fetchFreshSources, fetchSources, getMediaDomain } from "@/lib/moviebox";
+import { getMovieRelay, relayRequestUrl } from "@/lib/movie-relay";
 import { z } from "zod";
 import { isWorkerd, socketStream } from "@/lib/socket-fetch";
 import { exactMovieSource, movieRequestRange, validMovieContentRange } from "@/lib/movie-relay-rules";
@@ -102,9 +103,10 @@ export const Route = createFileRoute("/api/public/movie")({
           }
           // MovieBox's file server refuses all of Cloudflare's network (427), so a
           // Cloudflare deployment pulls the bytes through the outside relay.
-          if (MOVIEBOX_RELAY) {
+          const relay = await getMovieRelay();
+          if (relay) {
             const viaRelay = await fetch(
-              `${MOVIEBOX_RELAY.replace(/\/+$/, "")}/?u=${encodeURIComponent(url)}`,
+              relayRequestUrl(relay, url),
               { headers: mediaHeaders(), signal: request.signal },
             ).catch(() => null);
             attempts.push(`relay:${viaRelay?.status ?? "error"}`);
@@ -127,7 +129,7 @@ export const Route = createFileRoute("/api/public/movie")({
           const info = {
             version: RELAY_VERSION,
             workerd: isWorkerd(),
-            relay: Boolean(MOVIEBOX_RELAY),
+            relay: await getMovieRelay(),
             host: new URL(source.url).host,
             attempts,
             type: r?.headers.get("content-type") ?? null,

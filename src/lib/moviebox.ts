@@ -33,6 +33,8 @@ const TV_HOSTS = ["https://tv.aoneroom.com"];
  * issues an anonymous Bearer token through the `x-user` response header.
  * Playback goes through the media domain returned by /media-player/get-domain.
  */
+import { DEFAULT_MOVIE_RELAY, getMovieRelay, relayRequestUrl } from "./movie-relay";
+
 export const WEB_PREFIX = "/wefeed-h5api-bff";
 const WEB_HOST = "https://h5-api.aoneroom.com";
 const WEB_REFERER =
@@ -44,7 +46,8 @@ const WEB_REFERER =
  * sources. On Cloudflare, web BFF calls therefore use raw sockets
  * (socket-fetch.ts). Optional: set a non-Cloudflare relay (docs/moviebox-relay).
  */
-export const MOVIEBOX_RELAY: string = "https://function-bun-production-dfedb5e6.up.railway.app";
+/** Built-in fallback; admins change the live address in Dashboard → Settings. */
+export const MOVIEBOX_RELAY: string = DEFAULT_MOVIE_RELAY;
 
 const RETRY_STATUS = new Set([403, 406, 407, 408, 425, 429, 500, 502, 503, 504]);
 
@@ -265,9 +268,10 @@ async function webRaw(
     headers: webHeaders(referer),
     body: payload === undefined ? null : JSON.stringify(payload),
   };
+  const relay = isBrowser ? "" : await getMovieRelay();
   const res =
-    !isBrowser && MOVIEBOX_RELAY
-      ? await fetch(`${MOVIEBOX_RELAY.replace(/\/+$/, "")}/?u=${encodeURIComponent(target)}`, init)
+    relay
+      ? await fetch(relayRequestUrl(relay, target), init)
       : !isBrowser && isWorkerd()
         ? await socketFetch(target, init).catch(() => socketFetch(target, init))
         : await fetch(target, init);
