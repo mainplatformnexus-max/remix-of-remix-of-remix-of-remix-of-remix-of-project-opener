@@ -58,7 +58,7 @@ function toIso(v: unknown): string | null {
 }
 
 /** Firestore `media` doc -> LuoTitle. Legacy docs have no `language` field. */
-function toTitle(r: Row): LuoTitle {
+export function toTitle(r: Row): LuoTitle {
   const published = r.published ?? r.is_published ?? true;
   return {
     id: String(r.id),
@@ -78,7 +78,7 @@ function toTitle(r: Row): LuoTitle {
   };
 }
 
-function toEpisode(r: Row): LuoEpisode {
+export function toEpisode(r: Row): LuoEpisode {
   return {
     id: String(r.id),
     title_id: String(r.title_id ?? r.media_id ?? ""),
