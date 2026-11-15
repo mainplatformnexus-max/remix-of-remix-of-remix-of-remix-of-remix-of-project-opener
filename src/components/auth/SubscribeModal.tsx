@@ -71,12 +71,19 @@ const METHODS: Array<{ id: ModalMethod; label: string }> = [
 ];
 
 
+/** A one-off plan (e.g. a developer API plan) priced in USD instead of the VIP/SVIP list. */
+export type CustomPayPlan = { id: string; name: string; usd: number; days: number; tier: string; blurb?: string };
+
 export function SubscribeModal({
   open,
   onOpenChange,
+  customPlan,
+  onPaid,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  customPlan?: CustomPayPlan;
+  onPaid?: () => void;
 }) {
   const { user, profile } = useAuth();
   const { refreshSubscription } = useSubscription();
@@ -129,7 +136,10 @@ export function SubscribeModal({
 
   const active = TIERS[tier];
   const raw = active.plans.find((p) => p.id === selected) ?? active.plans[0]!;
-  const plan: PayPlan = {
+  const ugxPerUsd = geoQ.data?.rates?.["UGX"] ?? 3700;
+  const plan: PayPlan = customPlan
+    ? { id: customPlan.id, name: customPlan.name, price: Math.round(customPlan.usd * ugxPerUsd), days: customPlan.days, tier: customPlan.tier, devices: 1 }
+    : {
     id: raw.id,
     name: raw.name,
     price: raw.price,
@@ -252,9 +262,10 @@ export function SubscribeModal({
         if (!result) return;
         if (result.status === "completed") {
           setPhase("done");
-          setStatus("Payment confirmed — enjoy your membership.");
+          setStatus(customPlan ? "Payment confirmed — your plan is active." : "Payment confirmed — enjoy your membership.");
           refreshSubscription();
-          toast.success("Membership activated");
+          onPaid?.();
+          toast.success(customPlan ? `${customPlan.name} activated` : "Membership activated");
           window.setTimeout(() => onOpenChange(false), 1600);
         } else if (result.status === "failed") {
           if (reportedFail.current.has(txId)) return;
@@ -380,9 +391,9 @@ export function SubscribeModal({
             <Crown className="size-4 sm:size-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-[14px] font-bold sm:text-[15px]">Membership</p>
+            <p className="text-[14px] font-bold sm:text-[15px]">{customPlan ? customPlan.name : "Membership"}</p>
             <p className="truncate text-[11px] opacity-70 sm:text-[12px]">
-              Unlock every movie, series and episode.
+              {customPlan?.blurb ?? "Unlock every movie, series and episode."}
             </p>
           </div>
         </div>
@@ -390,6 +401,17 @@ export function SubscribeModal({
         <div className="grid min-w-0 gap-0 max-h-[calc(86dvh-52px)] overflow-y-auto overscroll-contain md:grid-cols-[1fr_260px]">
           <div className="min-w-0 p-2.5 sm:p-5">
 
+            {customPlan ? (
+              <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-black/5">
+                <p className="text-[12px] font-semibold opacity-70">You are paying for</p>
+                <p className="mt-1 text-[18px] font-black">{customPlan.name}</p>
+                <p className="mt-1 text-[22px] font-black">
+                  <span className="text-[13px] font-bold">{country.currency} </span>
+                  {formatAmount(localPrice, "").trim()}
+                </p>
+                <p className="mt-0.5 text-[11px] opacity-70">US${customPlan.usd.toFixed(2)} · {customPlan.days >= 365 ? "12 months" : "30 days"}</p>
+              </div>
+            ) : (<>
             <div className="grid grid-cols-2 overflow-hidden rounded-2xl bg-white/60 p-1 shadow-sm">
               {(Object.keys(TIERS) as Array<"vip" | "svip">).map((k) => {
                 const T = TIERS[k];
