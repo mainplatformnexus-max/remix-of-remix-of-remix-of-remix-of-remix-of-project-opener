@@ -70,10 +70,10 @@ export async function docxBlob(md: string, title: string): Promise<Blob> {
       const any = t as Token & { tokens?: Token[]; text?: string };
       if (t.type === "strong") out.push(...runs(any.tokens, { ...fmt, bold: true }));
       else if (t.type === "em") out.push(...runs(any.tokens, { ...fmt, italics: true }));
-      else if (t.type === "codespan") out.push(new TextRun({ text: decode(any.text ?? ""), font: "Consolas", bold: fmt.bold, size: 19 }));
+      else if (t.type === "codespan") out.push(new TextRun({ text: decode(any.text ?? ""), font: "Consolas", bold: !!fmt.bold, size: 19 }));
       else if (t.type === "br") out.push(new TextRun({ text: "", break: 1 }));
       else if (any.tokens?.length) out.push(...runs(any.tokens, fmt));
-      else out.push(new TextRun({ text: decode(any.text ?? ""), bold: fmt.bold, italics: fmt.italics, font: fmt.code ? "Consolas" : undefined }));
+      else out.push(new TextRun({ text: decode(any.text ?? ""), bold: !!fmt.bold, italics: !!fmt.italics, font: fmt.code ? "Consolas" : "Arial" }));
     }
     return out;
   };
@@ -112,8 +112,8 @@ export async function docxBlob(md: string, title: string): Promise<Blob> {
             (c, i) =>
               new TableCell({
                 borders,
-                width: { size: widths[i], type: WidthType.DXA },
-                shading: head ? { fill: "EEF1FB", type: ShadingType.CLEAR, color: "auto" } : undefined,
+                width: { size: widths[i] ?? w, type: WidthType.DXA },
+                ...(head ? { shading: { fill: "EEF1FB", type: ShadingType.CLEAR, color: "auto" } } : {}),
                 margins: { top: 60, bottom: 60, left: 100, right: 100 },
                 children: [new Paragraph({ children: runs(c.tokens, { bold: head }) })],
               }),

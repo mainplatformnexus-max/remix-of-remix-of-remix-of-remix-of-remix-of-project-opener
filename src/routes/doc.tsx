@@ -48,7 +48,10 @@ function DocPage() {
   };
   const savePdf = () => {
     const w = window.open("", "_blank");
-    if (!w) return toast.error("Allow pop-ups to save the PDF");
+    if (!w) {
+      toast.error("Allow pop-ups to save the PDF");
+      return;
+    }
     w.document.write(docStandaloneHtml(md, TITLE));
     w.document.close();
     toast.message("Choose “Save as PDF” in the print window");
