@@ -123,7 +123,7 @@ export default function DocChat({ origin, page, onClose }: { origin: string; pag
           ) : (
             messages.map((m) => (
               <Message key={m.id} from={m.role}>
-                <MessageContent className={m.role === "user" ? "bg-primary text-primary-foreground" : "bg-transparent p-0 text-foreground"}>
+                <MessageContent className={m.role === "user" ? "group-[.is-user]:bg-primary group-[.is-user]:text-primary-foreground" : "bg-transparent p-0"}>
                   {m.parts.map((p, i) =>
                     p.type === "text" ? (
                       m.role === "assistant" ? (
