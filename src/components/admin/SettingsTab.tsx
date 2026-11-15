@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Save, Link2, DatabaseZap, Radio, CheckCircle2, XCircle } from "lucide-react";
+import { Save, Link2, DatabaseZap, Radio, CheckCircle2, XCircle, KeyRound, Copy, BookOpen } from "lucide-react";
+import { API_TOKEN_KEY, newApiToken, sha256Hex, type ApiTokenSetting } from "@/lib/api-token";
+import { refreshApiToken } from "@/lib/api-token.functions";
 import { DEFAULT_MOVIE_RELAY, MOVIE_RELAY_KEY, normalizeRelayUrl } from "@/lib/movie-relay";
 import { refreshMovieRelay, testMovieRelay, type RelayCheck } from "@/lib/movie-relay.functions";
 import {
@@ -63,6 +65,7 @@ export function SettingsTab() {
   return (
     <div className="space-y-5">
       <MovieRelayPanel />
+      <ApiTokenPanel />
       <Panel
         title="Subscription prices"
         action={
@@ -255,6 +258,84 @@ function MovieRelayPanel() {
         )}
         <p className="text-[11px] opacity-55">
           Saving tests the address first and only keeps it if MovieBox answers through it. The live site switches within a minute.
+        </p>
+      </div>
+    </Panel>
+  );
+}
+
+const LOCAL_TOKEN = "moviemax_api_token";
+
+/** One developer API token for every developer using /api/public/v1. */
+function ApiTokenPanel() {
+  const qc = useQueryClient();
+  const tokenQ = useQuery({
+    queryKey: ["api-token"],
+    queryFn: () => getSetting<ApiTokenSetting | null>(API_TOKEN_KEY, null),
+  });
+  const [shown, setShown] = useState<string | null>(null);
+  useEffect(() => {
+    const local = localStorage.getItem(LOCAL_TOKEN);
+    if (local && tokenQ.data?.last4 && local.endsWith(tokenQ.data.last4)) setShown(local);
+  }, [tokenQ.data]);
+
+  const create = useMutation({
+    mutationFn: async () => {
+      if (tokenQ.data && !window.confirm("Replace the API token? Apps using the old one stop working within a minute.")) {
+        throw new Error("cancelled");
+      }
+      const token = newApiToken();
+      const value: ApiTokenSetting = { hash: await sha256Hex(token), last4: token.slice(-4), created_at: new Date().toISOString() };
+      await saveSetting(API_TOKEN_KEY, value);
+      await refreshApiToken().catch(() => undefined);
+      localStorage.setItem(LOCAL_TOKEN, token);
+      return token;
+    },
+    onSuccess: (token) => {
+      setShown(token);
+      toast.success("API token created — copy it and share it with your developers");
+      void qc.invalidateQueries({ queryKey: ["api-token"] });
+    },
+    onError: (e: Error) => e.message !== "cancelled" && toast.error(e.message),
+  });
+
+  const copy = async () => {
+    if (!shown) return;
+    await navigator.clipboard.writeText(shown);
+    toast.success("Token copied");
+  };
+
+  const t = tokenQ.data;
+  return (
+    <Panel
+      title="Developer API token"
+      action={
+        <button type="button" onClick={() => create.mutate()} disabled={create.isPending} className={`${goldBtn} inline-flex items-center gap-2`}>
+          <KeyRound className="size-4" /> {create.isPending ? "Creating…" : t ? "Replace token" : "Create token"}
+        </button>
+      }
+    >
+      <div className="space-y-3">
+        <p className="text-[13px] font-semibold">
+          {t ? (
+            <>Active token ending in <span className="font-mono">…{t.last4}</span> · created {new Date(t.created_at).toLocaleString()}</>
+          ) : (
+            "No token yet — the developer API is closed until you create one."
+          )}
+        </p>
+        {shown && (
+          <div className="flex items-center gap-2 rounded-2xl bg-white/65 p-2">
+            <code className="min-w-0 flex-1 break-all px-2 font-mono text-[12px]">{shown}</code>
+            <button type="button" onClick={copy} className="inline-flex items-center gap-1 rounded-full border border-current/20 px-3 py-1.5 text-[12px] font-semibold">
+              <Copy className="size-3.5" /> Copy
+            </button>
+          </div>
+        )}
+        <p className="text-[11px] opacity-55">
+          One token for all developers. Only a fingerprint is stored, so the full token shows only on the browser that created it — create a new one if you lose it.{" "}
+          <a href="/doc" target="_blank" rel="noopener" className="inline-flex items-center gap-1 font-semibold underline">
+            <BookOpen className="size-3" /> Developer guide
+          </a>
         </p>
       </div>
     </Panel>
