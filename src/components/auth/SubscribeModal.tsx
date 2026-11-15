@@ -484,6 +484,7 @@ export function SubscribeModal({
                 );
               })}
             </div>
+            </>)}
 
 
             <div className="mt-3 sm:mt-4">
