@@ -35,6 +35,8 @@ import { Route as ApiDocChatRouteImport } from './routes/api/doc-chat'
 import { Route as ArtistIdRouteImport } from './routes/artist.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ChannelIdRouteImport } from './routes/channel.$id'
+import { Route as DocIndexRouteImport } from './routes/doc.index'
+import { Route as DocSlugRouteImport } from './routes/doc.$slug'
 import { Route as LugandaIndexRouteImport } from './routes/luganda.index'
 import { Route as LugandaIdRouteImport } from './routes/luganda.$id'
 import { Route as LuoIndexRouteImport } from './routes/luo.index'
@@ -185,6 +187,16 @@ const ChannelIdRoute = ChannelIdRouteImport.update({
   path: '/channel/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocIndexRoute = DocIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocRoute,
+} as any)
+const DocSlugRoute = DocSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => DocRoute,
+} as any)
 const LugandaIndexRoute = LugandaIndexRouteImport.update({
   id: '/luganda/',
   path: '/luganda/',
@@ -280,7 +292,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
-  '/doc': typeof DocRoute
+  '/doc': typeof DocRouteWithChildren
   '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
@@ -303,12 +315,14 @@ export interface FileRoutesByFullPath {
   '/artist/$id': typeof ArtistIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/channel/$id': typeof ChannelIdRoute
+  '/doc/$slug': typeof DocSlugRoute
   '/luganda/$id': typeof LugandaIdRoute
   '/luo/$id': typeof LuoIdRoute
   '/music-artist/$slug': typeof MusicArtistSlugRoute
   '/pay/$id': typeof PayIdRoute
   '/teso/$id': typeof TesoIdRoute
   '/watch/$id': typeof WatchIdRoute
+  '/doc/': typeof DocIndexRoute
   '/luganda/': typeof LugandaIndexRoute
   '/luo/': typeof LuoIndexRoute
   '/teso/': typeof TesoIndexRoute
@@ -326,7 +340,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
-  '/doc': typeof DocRoute
   '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
@@ -349,12 +362,14 @@ export interface FileRoutesByTo {
   '/artist/$id': typeof ArtistIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/channel/$id': typeof ChannelIdRoute
+  '/doc/$slug': typeof DocSlugRoute
   '/luganda/$id': typeof LugandaIdRoute
   '/luo/$id': typeof LuoIdRoute
   '/music-artist/$slug': typeof MusicArtistSlugRoute
   '/pay/$id': typeof PayIdRoute
   '/teso/$id': typeof TesoIdRoute
   '/watch/$id': typeof WatchIdRoute
+  '/doc': typeof DocIndexRoute
   '/luganda': typeof LugandaIndexRoute
   '/luo': typeof LuoIndexRoute
   '/teso': typeof TesoIndexRoute
@@ -373,7 +388,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
-  '/doc': typeof DocRoute
+  '/doc': typeof DocRouteWithChildren
   '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
@@ -396,12 +411,14 @@ export interface FileRoutesById {
   '/artist/$id': typeof ArtistIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/channel/$id': typeof ChannelIdRoute
+  '/doc/$slug': typeof DocSlugRoute
   '/luganda/$id': typeof LugandaIdRoute
   '/luo/$id': typeof LuoIdRoute
   '/music-artist/$slug': typeof MusicArtistSlugRoute
   '/pay/$id': typeof PayIdRoute
   '/teso/$id': typeof TesoIdRoute
   '/watch/$id': typeof WatchIdRoute
+  '/doc/': typeof DocIndexRoute
   '/luganda/': typeof LugandaIndexRoute
   '/luo/': typeof LuoIndexRoute
   '/teso/': typeof TesoIndexRoute
@@ -444,12 +461,14 @@ export interface FileRouteTypes {
     | '/artist/$id'
     | '/category/$slug'
     | '/channel/$id'
+    | '/doc/$slug'
     | '/luganda/$id'
     | '/luo/$id'
     | '/music-artist/$slug'
     | '/pay/$id'
     | '/teso/$id'
     | '/watch/$id'
+    | '/doc/'
     | '/luganda/'
     | '/luo/'
     | '/teso/'
@@ -467,7 +486,6 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/channels'
-    | '/doc'
     | '/doc.md'
     | '/music'
     | '/plans'
@@ -490,12 +508,14 @@ export interface FileRouteTypes {
     | '/artist/$id'
     | '/category/$slug'
     | '/channel/$id'
+    | '/doc/$slug'
     | '/luganda/$id'
     | '/luo/$id'
     | '/music-artist/$slug'
     | '/pay/$id'
     | '/teso/$id'
     | '/watch/$id'
+    | '/doc'
     | '/luganda'
     | '/luo'
     | '/teso'
@@ -536,12 +556,14 @@ export interface FileRouteTypes {
     | '/artist/$id'
     | '/category/$slug'
     | '/channel/$id'
+    | '/doc/$slug'
     | '/luganda/$id'
     | '/luo/$id'
     | '/music-artist/$slug'
     | '/pay/$id'
     | '/teso/$id'
     | '/watch/$id'
+    | '/doc/'
     | '/luganda/'
     | '/luo/'
     | '/teso/'
@@ -560,7 +582,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ChannelsRoute: typeof ChannelsRoute
-  DocRoute: typeof DocRoute
+  DocRoute: typeof DocRouteWithChildren
   DocDotmdRoute: typeof DocDotmdRoute
   MusicRoute: typeof MusicRoute
   PlansRoute: typeof PlansRoute
@@ -787,6 +809,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChannelIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doc/': {
+      id: '/doc/'
+      path: '/'
+      fullPath: '/doc/'
+      preLoaderRoute: typeof DocIndexRouteImport
+      parentRoute: typeof DocRoute
+    }
+    '/doc/$slug': {
+      id: '/doc/$slug'
+      path: '/$slug'
+      fullPath: '/doc/$slug'
+      preLoaderRoute: typeof DocSlugRouteImport
+      parentRoute: typeof DocRoute
+    }
     '/luganda/': {
       id: '/luganda/'
       path: '/luganda'
@@ -916,11 +952,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DocRouteChildren {
+  DocSlugRoute: typeof DocSlugRoute
+  DocIndexRoute: typeof DocIndexRoute
+}
+
+const DocRouteChildren: DocRouteChildren = {
+  DocSlugRoute: DocSlugRoute,
+  DocIndexRoute: DocIndexRoute,
+}
+
+const DocRouteWithChildren = DocRoute._addFileChildren(DocRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ChannelsRoute: ChannelsRoute,
-  DocRoute: DocRoute,
+  DocRoute: DocRouteWithChildren,
   DocDotmdRoute: DocDotmdRoute,
   MusicRoute: MusicRoute,
   PlansRoute: PlansRoute,
