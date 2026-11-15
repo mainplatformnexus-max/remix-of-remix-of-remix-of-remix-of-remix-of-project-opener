@@ -4,7 +4,7 @@
  * Firestore REST endpoint with a short cache; when the setting is missing or
  * Firestore is unreachable, the last good value or the built-in default is used.
  */
-export const DEFAULT_MOVIE_RELAY = "https://function-bun-production-bb9ef598.up.railway.app";
+export const DEFAULT_MOVIE_RELAY = "https://imaginative-hamster-d1eb74.netlify.app";
 export const MOVIE_RELAY_KEY = "movie_relay";
 
 const FIRESTORE_DOC =
