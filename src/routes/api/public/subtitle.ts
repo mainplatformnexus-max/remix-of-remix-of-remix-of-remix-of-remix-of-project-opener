@@ -1,3 +1,4 @@
+import { getMovieRelay, relayRequestUrl } from "@/lib/movie-relay";
 import { isWorkerd, socketFetch } from "@/lib/socket-fetch";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -30,8 +31,14 @@ export const Route = createFileRoute("/api/public/subtitle")({
         let upstream = isWorkerd()
           ? await socketFetch(parsed.toString(), { headers: { "user-agent": "Mozilla/5.0" } }).catch(() => null)
           : null;
-        if (!upstream?.ok) upstream = await fetch(parsed.toString());
-        if (!upstream.ok) return new Response("Subtitle unavailable", { status: 502 });
+        if (!upstream?.ok) upstream = await fetch(parsed.toString()).catch(() => null);
+        // MovieBox's CDN refuses some hosting networks; retry through the movie relay.
+        if (!upstream?.ok) {
+          upstream = await fetch(relayRequestUrl(await getMovieRelay(), parsed.toString()), {
+            headers: { "user-agent": "Mozilla/5.0" },
+          }).catch(() => null);
+        }
+        if (!upstream?.ok) return new Response("Subtitle unavailable", { status: 502 });
 
         return new Response(srtToVtt(await upstream.text()), {
           headers: {
