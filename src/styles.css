@@ -666,3 +666,35 @@
 .api-doc th, .api-doc td { border: 1px solid var(--border); padding: 0.45rem 0.65rem; text-align: left; vertical-align: top; }
 .api-doc th { background: var(--muted); color: var(--foreground); font-weight: 700; }
 .api-doc td { color: var(--muted-foreground); }
+
+/* Developer area (docs + dashboard) light theme — toggled per visitor. */
+.theme-light {
+  --background: oklch(0.985 0.003 264);
+  --foreground: oklch(0.2 0.02 264);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.02 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.02 264);
+  --primary: oklch(0.52 0.24 325);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.005 264);
+  --secondary-foreground: oklch(0.25 0.02 264);
+  --muted: oklch(0.955 0.005 264);
+  --muted-foreground: oklch(0.47 0.015 264);
+  --accent: oklch(0.94 0.01 264);
+  --accent-foreground: oklch(0.2 0.02 264);
+  --border: oklch(0.2 0.02 264 / 10%);
+  --input: oklch(0.2 0.02 264 / 14%);
+  --brand: oklch(0.52 0.24 325);
+  --sidebar: oklch(0.97 0.004 264);
+  --sidebar-foreground: oklch(0.3 0.02 264);
+  --sidebar-border: oklch(0.2 0.02 264 / 8%);
+  color-scheme: light;
+}
+.theme-dark { color-scheme: dark; }
+
+.api-doc--page { font-size: 15px; line-height: 1.75; }
+.api-doc--page h1 { font-size: 2.1rem; letter-spacing: -0.02em; border-bottom: 0; margin-bottom: 1rem; }
+.api-doc--page h2 { font-size: 1.3rem; margin-top: 2.25rem; padding-top: 0.5rem; }
+.api-doc--page pre { background: var(--muted); }
+.api-doc--page a { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
