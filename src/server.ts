@@ -65,9 +65,9 @@ function withEdgeCache(request: Request, response: Response): Response {
 }
 
 /**
- * Keeps the payments backend awake while nobody has the site open. A
- * once-a-minute cron (see wrangler.jsonc) pings it every 3 seconds for the
- * whole minute.
+ * Pings the payments backend every 3 seconds for a minute when a scheduled
+ * event fires. wrangler.jsonc deliberately has no cron triggers (free
+ * Cloudflare accounts allow only 5), so this only runs if one is added by hand.
  */
 const PAYMENT_BACKEND_HEALTH = "https://payment.nexusplatformafrica.workers.dev/health";
 

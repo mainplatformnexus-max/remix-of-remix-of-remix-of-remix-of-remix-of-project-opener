@@ -66,9 +66,11 @@
 - [x] Admin Artists tab: block/unblock, delete with all content, feature any song on the music hero free; blocked artists hidden from public pages.
 - [x] SEO: music + channels sitemaps (artists, songs, TV channels) added to index and robots; MOVIEMAX logo as favicon/apple icon/share image; mobile top bar without providers, full Subscribe button.
 
-- [x] Switch payments to payment.bonto.run and keep it awake (3s pings from open pages + Worker cron).
+- [x] Switch payments to payment.bonto.run and keep it awake (3s pings from open pages).
 - [x] Fix payment-failed popup reappearing after it is closed.
 - [x] Music page: show Ugandan songs from the open Audius platform alongside uploads.
 - [x] Music page: full songs from top Ugandan artists (UgMuziki) with Trending row and artist filters; Audius songs after.
 - [x] Music: real artist photos + artist pages (songs + videos), real trending now, new this month, music videos.
 - [x] Live TV player plays .m3u8, .ts/.flv, .mpd and .mp4 links with automatic format fallback.
+
+- [x] Fix deploy failure: removed Worker cron trigger (free Cloudflare plan limit of 5 crons per account).
