@@ -702,3 +702,4 @@
 .api-doc--page h2 { font-size: 1.3rem; margin-top: 2.25rem; padding-top: 0.5rem; }
 .api-doc--page pre { background: var(--muted); }
 .api-doc--page a { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
+.api-doc ol { list-style: decimal; padding-left: 1.4rem; margin: 0.6rem 0; color: var(--muted-foreground); }
