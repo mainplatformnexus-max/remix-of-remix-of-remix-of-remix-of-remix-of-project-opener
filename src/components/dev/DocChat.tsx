@@ -26,7 +26,7 @@ const SUGGESTIONS = [
   "What are the rate limits on each plan?",
 ];
 
-export default function DocChat({ origin, page, onClose }: { origin: string; page: string; onClose?: () => void }) {
+export default function DocChat({ origin, page, onClose }: { origin: string; page: string; onClose?: (() => void) | undefined }) {
   const [agent, setAgent] = useState<(typeof AGENTS)[number]["id"]>("moviemax");
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/doc-chat", body: { page } }), [page]);
   const { messages, sendMessage, status, stop, setMessages } = useChat({

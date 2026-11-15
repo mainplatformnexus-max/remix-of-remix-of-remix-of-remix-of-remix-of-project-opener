@@ -115,7 +115,10 @@ function DeveloperPage() {
     setCreating(true);
     try {
       const r = await createFn({ data: { idToken: await idToken(), name: keyName.trim() || "My app" } });
-      if (!r.ok) return toast.error(r.error);
+      if (!r.ok) {
+        toast.error(r.error);
+        return;
+      }
       setNewKey(r.token);
       setKeyName("");
       void load();
@@ -130,7 +133,10 @@ function DeveloperPage() {
     if (!confirm(`Delete the key “${k.name}”? Apps using it will stop working.`)) return;
     try {
       const r = await revokeFn({ data: { idToken: await idToken(), hash: k.hash } });
-      if (!r.ok) return toast.error(r.error);
+      if (!r.ok) {
+        toast.error(r.error);
+        return;
+      }
       toast.success("Key deleted");
       void load();
     } catch (e) {

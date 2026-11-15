@@ -97,7 +97,10 @@ function DocNav({ slug, origin, onPick }: { slug: string; origin: string; onPick
   };
   const savePdf = () => {
     const w = window.open("", "_blank");
-    if (!w) return toast.error("Allow pop-ups to save the PDF");
+    if (!w) {
+      toast.error("Allow pop-ups to save the PDF");
+      return;
+    }
     w.document.write(docStandaloneHtml(md, DOC_TITLE));
     w.document.close();
     toast.message("Choose “Save as PDF” in the print window");
