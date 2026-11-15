@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ChannelsRouteImport } from './routes/channels'
+import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as DocRouteImport } from './routes/doc'
 import { Route as DocDotmdRouteImport } from './routes/doc[.]md'
 import { Route as MusicRouteImport } from './routes/music'
@@ -69,6 +70,11 @@ const AdminRoute = AdminRouteImport.update({
 const ChannelsRoute = ChannelsRouteImport.update({
   id: '/channels',
   path: '/channels',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloperRoute = DeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocRoute = DocRouteImport.update({
@@ -292,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
+  '/developer': typeof DeveloperRoute
   '/doc': typeof DocRouteWithChildren
   '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
+  '/developer': typeof DeveloperRoute
   '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
@@ -388,6 +396,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
+  '/developer': typeof DeveloperRoute
   '/doc': typeof DocRouteWithChildren
   '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
@@ -438,6 +447,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/channels'
+    | '/developer'
     | '/doc'
     | '/doc.md'
     | '/music'
@@ -486,6 +496,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/channels'
+    | '/developer'
     | '/doc.md'
     | '/music'
     | '/plans'
@@ -533,6 +544,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/channels'
+    | '/developer'
     | '/doc'
     | '/doc.md'
     | '/music'
@@ -582,6 +594,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ChannelsRoute: typeof ChannelsRoute
+  DeveloperRoute: typeof DeveloperRoute
   DocRoute: typeof DocRouteWithChildren
   DocDotmdRoute: typeof DocDotmdRoute
   MusicRoute: typeof MusicRoute
@@ -646,6 +659,13 @@ declare module '@tanstack/react-router' {
       path: '/channels'
       fullPath: '/channels'
       preLoaderRoute: typeof ChannelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developer': {
+      id: '/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof DeveloperRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/doc': {
@@ -968,6 +988,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ChannelsRoute: ChannelsRoute,
+  DeveloperRoute: DeveloperRoute,
   DocRoute: DocRouteWithChildren,
   DocDotmdRoute: DocDotmdRoute,
   MusicRoute: MusicRoute,
