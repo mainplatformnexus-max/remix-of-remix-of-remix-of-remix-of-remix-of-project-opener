@@ -81,16 +81,37 @@ export function resetApiTokenCache() {
   cached = null;
 }
 
-/** Returns an error Response when the request is not allowed, otherwise null. */
+/**
+ * Access check for /api/public/v1 data endpoints.
+ * - The admin token (Settings) is unlimited.
+ * - Developer keys (Developer dashboard) need an active paid plan and are
+ *   rate-limited per second and metered per month (see developer-api.ts).
+ * Returns `denied` (error Response) or extra headers to add to the answer.
+ */
 export async function checkApiAccess(
   request: Request,
   headers: Record<string, string>,
-): Promise<Response | null> {
+  origin: string,
+): Promise<{ denied: Response | null; headers: Record<string, string> }> {
+  const fail = (error: string, status: number, extra: Record<string, string> = {}) => ({
+    denied: Response.json(
+      { ok: false, error },
+      { status, headers: { ...headers, ...extra, "cache-control": "no-store" } },
+    ),
+    headers: {},
+  });
+  const token = extractApiToken(request);
+  if (!token || token.length > 200) return fail("Missing API token — get one at " + origin + "/developer", 401);
+
+  if (token.startsWith("mmx_live_")) {
+    const { checkDeveloperKey } = await import("./developer-api");
+    const r = await checkDeveloperKey(token, origin);
+    if (!r.ok) return fail(r.error, r.status, r.headers);
+    return { denied: null, headers: r.headers };
+  }
+
   const hash = await getApiTokenHash();
-  const fail = (error: string, status: number) =>
-    Response.json({ ok: false, error }, { status, headers: { ...headers, "cache-control": "no-store" } });
-  if (hash === undefined) return fail("API token could not be checked — retry shortly", 503);
-  if (hash === null) return fail("API token not created yet — ask the MOVIE MAX admin", 503);
-  if (!(await tokenMatches(extractApiToken(request), hash))) return fail("Invalid or missing API token", 401);
-  return null;
+  if (await tokenMatches(token, hash ?? null)) return { denied: null, headers: { "x-plan": "admin", "x-quota-limit": "unlimited" } };
+  if (hash === undefined) return fail("API token could not be checked — retry shortly", 503, { "retry-after": "5" });
+  return fail("Invalid or missing API token", 401);
 }

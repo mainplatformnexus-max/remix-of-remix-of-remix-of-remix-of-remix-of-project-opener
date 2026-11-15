@@ -31,6 +31,7 @@ const cors = {
   "access-control-allow-methods": "GET, OPTIONS",
   "access-control-allow-headers": "Content-Type, Authorization, X-API-Key",
   "access-control-max-age": "86400",
+  "access-control-expose-headers": "X-RateLimit-Limit, X-RateLimit-Remaining, X-Quota-Limit, X-Quota-Used, X-Quota-Remaining, X-Plan, Retry-After",
 };
 
 class ApiError extends Error {
@@ -311,7 +312,8 @@ function index(origin: string) {
     name: "MOVIE MAX API",
     version: "v1",
     docs: `${origin}/doc`,
-    auth: "Every endpoint below needs the API token from the MOVIE MAX admin: header 'Authorization: Bearer <token>' or 'X-API-Key: <token>', or query '?api_key=<token>'.",
+    auth: `Every endpoint below needs an API key from ${origin}/developer (paid developer plan): header 'Authorization: Bearer <key>' or 'X-API-Key: <key>', or query '?api_key=<key>'.`,
+    plans: `${origin}/developer`,
     endpoints: {
       search: `${b}/search?q=`,
       moviebox: [`${b}/moviebox/home`, `${b}/moviebox/feed?page=0`, `${b}/moviebox/trending`, `${b}/moviebox/search?q=&page=1`, `${b}/moviebox/title/{id}`, `${b}/moviebox/sources/{id}?se=0&ep=0`, `${b}/moviebox/related/{id}`],
@@ -333,12 +335,18 @@ export const Route = createFileRoute("/api/public/v1/$")({
         try {
           const [area, ...rest] = parts;
           if (!area) return index(origin);
-          const denied = await checkApiAccess(request, cors);
-          if (denied) return denied;
-          if (area === "search") return await search(url.searchParams, origin);
-          if (area === "moviebox") return await moviebox(rest, url.searchParams, origin);
-          if ((LANGS as readonly string[]).includes(area)) return await library(area as (typeof LANGS)[number], rest, url.searchParams, origin);
-          return fail("Unknown endpoint", 404);
+          const access = await checkApiAccess(request, cors, origin);
+          if (access.denied) return access.denied;
+          const res =
+            area === "search"
+              ? await search(url.searchParams, origin)
+              : area === "moviebox"
+                ? await moviebox(rest, url.searchParams, origin)
+                : (LANGS as readonly string[]).includes(area)
+                  ? await library(area as (typeof LANGS)[number], rest, url.searchParams, origin)
+                  : fail("Unknown endpoint", 404);
+          for (const [k, v] of Object.entries(access.headers)) res.headers.set(k, v);
+          return res;
         } catch (e) {
           if (e instanceof ApiError) return fail(e.message, e.status);
           console.error("api v1", e);
