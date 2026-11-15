@@ -79,3 +79,10 @@
 ## Developer docs page
 - [x] /doc page showing the developer API guide with the current domain; download as PDF, DOCX, DOC, MD
 - [x] Admin creates one developer API token in Settings; /api/public/v1 requires it
+
+## Developer platform
+- [ ] Paid developer plans (monthly/yearly + custom contact) bought with all payment methods
+- [ ] Developer dashboard: keys only with paid plan, key limits, usage
+- [ ] API enforces per-key monthly quota + per-second rate limit (Firestore); admin token unlimited
+- [ ] /doc redesign: big sidebar, page-by-page with next/prev, light/dark theme, side AI chat (+ open in ChatGPT/Claude/Gemini)
+- [ ] Header: Dashboard button before profile avatar
