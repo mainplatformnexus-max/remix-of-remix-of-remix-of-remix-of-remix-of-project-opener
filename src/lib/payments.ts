@@ -121,7 +121,51 @@ export async function startMobileMoney(tx: Row, phone: string, provider?: string
 }
 
 
+/** Developer API plans (tier `api_*`) live in their own collection so they never unlock VIP viewing. */
+async function activateDeveloperPlan(tx: Row, source: string) {
+  const { data: existing } = await fdb
+    .from("api_subscriptions")
+    .select("*")
+    .eq("transaction_id", String(tx.id))
+    .maybeSingle();
+  if (existing) return;
+  const { data: latest } = await fdb
+    .from("api_subscriptions")
+    .select("*")
+    .eq("user_id", tx.user_id)
+    .eq("plan_id", tx.tier)
+    .order("created_at", { ascending: false })
+    .maybeSingle();
+  const live = latest && String(latest.status) === "active" && latest.expires_at && new Date(latest.expires_at).getTime() > Date.now();
+  const base = live ? new Date(latest!.expires_at).getTime() : Date.now();
+  const days = Number(tx.duration_days ?? 30);
+  await fdb.from("api_subscriptions").insert({
+    id: uuid(),
+    user_id: tx.user_id,
+    transaction_id: String(tx.id),
+    plan_id: tx.tier,
+    plan_name: tx.plan_name,
+    billing: days >= 365 ? "yearly" : "monthly",
+    amount: tx.amount,
+    currency: tx.currency ?? CURRENCY_CODE,
+    status: "active",
+    starts_at: nowIso(),
+    expires_at: new Date(base + days * 86_400_000).toISOString(),
+    source,
+    created_at: nowIso(),
+  });
+  await fdb.from("luo_activities").insert({
+    id: uuid(),
+    user_id: tx.user_id,
+    action: "developer_plan_activated",
+    detail: `${tx.plan_name} · ${days} days`,
+    target: String(tx.plan_name ?? ""),
+    created_at: nowIso(),
+  });
+}
+
 async function activateSubscription(tx: Row, source = "relworx") {
+  if (String(tx.tier ?? "").startsWith("api_")) return activateDeveloperPlan(tx, source);
   // One transaction may only ever grant one subscription, no matter how many
   // pollers (this tab, the provider hook, the /pay page) confirm it at once.
   const { data: existing } = await fdb

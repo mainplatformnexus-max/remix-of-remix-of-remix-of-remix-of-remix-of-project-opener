@@ -1,45 +1,94 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { FileText, FileDown, FileType, FileCode2, KeyRound } from "lucide-react";
+import { ClientOnly, createFileRoute, Link, Outlet, useParams } from "@tanstack/react-router";
+import { lazy, Suspense, useMemo, useState } from "react";
+import { FileCode2, FileDown, FileText, FileType, KeyRound, Search } from "lucide-react";
 import { toast } from "sonner";
-import { Sidebar } from "@/components/youku/Sidebar";
-import { TopBar } from "@/components/youku/TopBar";
-import { MobileNav } from "@/components/youku/MobileNav";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { DevHeader } from "@/components/dev/DevHeader";
+import { DOC_PAGES, DOC_SOURCE, DOC_TITLE } from "@/components/dev/doc-data";
+import { useDevTheme } from "@/hooks/useDevTheme";
 import { getSiteOrigin } from "@/lib/api-token.functions";
-import { docLegacyBlob, docStandaloneHtml, docToHtml, docToc, docxBlob, downloadBlob, fillDoc } from "@/lib/doc-export";
-import guide from "@/content/moviemax-api.md?raw";
+import { docLegacyBlob, docStandaloneHtml, docxBlob, downloadBlob, fillDoc } from "@/lib/doc-export";
 
-const TITLE = "MOVIE MAX Content API — Developer Guide";
+const DocChat = lazy(() => import("@/components/dev/DocChat"));
 const FILE = "MOVIEMAX-API-Guide";
 
 export const Route = createFileRoute("/doc")({
   loader: () => getSiteOrigin(),
-  head: () => ({
-    meta: [
-      { title: "Developer API Guide — MOVIE MAX" },
-      { name: "description", content: "Full MOVIE MAX developer guide: search, English, Luganda VJ, Luo and Teso catalogs, play, download and subtitle links on our own domain, with API token access." },
-      { property: "og:title", content: "Developer API Guide — MOVIE MAX" },
-      { property: "og:description", content: "Build on the MOVIE MAX library: every endpoint, token access, code examples, downloadable as PDF, DOCX, DOC or Markdown." },
-      { property: "og:type", content: "article" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: DocPage,
+  component: DocLayout,
 });
 
-function DocPage() {
+function DocLayout() {
   const origin = Route.useLoaderData();
-  const md = useMemo(() => fillDoc(guide, origin), [origin]);
-  const html = useMemo(() => docToHtml(md), [md]);
-  const toc = useMemo(() => docToc(md), [md]);
+  const { theme, toggle } = useDevTheme();
+  const params = useParams({ strict: false }) as { slug?: string };
+  const slug = params.slug ?? "overview";
+  const current = DOC_PAGES.find((p) => p.slug === slug);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
+  const [mobileChat, setMobileChat] = useState(false);
+
+  const toggleChat = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(min-width: 1280px)").matches) setChatOpen((v) => !v);
+    else setMobileChat(true);
+  };
+
+  const nav = <DocNav slug={slug} origin={origin} onPick={() => setMenuOpen(false)} />;
+  const chat = (onClose?: () => void) => (
+    <ClientOnly fallback={<div className="h-full bg-card" />}>
+      <Suspense fallback={<div className="h-full bg-card" />}>
+        <DocChat origin={origin} page={current?.title ?? "Overview"} onClose={onClose} />
+      </Suspense>
+    </ClientOnly>
+  );
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <DevHeader theme={theme} onToggleTheme={toggle} onMenu={() => setMenuOpen(true)} onChat={toggleChat} chatOpen={chatOpen} active="doc" />
+      <div className="mx-auto flex max-w-[1680px]">
+        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-[290px] shrink-0 overflow-y-auto border-r border-border bg-sidebar/40 lg:block">
+          {nav}
+        </aside>
+        <main className="min-w-0 flex-1 px-4 pb-24 pt-8 sm:px-8 lg:px-12 xl:px-14">
+          <Outlet />
+        </main>
+        {chatOpen && (
+          <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-[400px] shrink-0 border-l border-border xl:block 2xl:w-[440px]">
+            {chat(() => setChatOpen(false))}
+          </aside>
+        )}
+      </div>
+
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetContent side="left" className="w-[300px] overflow-y-auto bg-background p-0">
+          <SheetTitle className="sr-only">Guide pages</SheetTitle>
+          {nav}
+        </SheetContent>
+      </Sheet>
+      <Sheet open={mobileChat} onOpenChange={setMobileChat}>
+        <SheetContent side="right" className="w-full max-w-[440px] p-0 sm:max-w-[440px] [&>button]:hidden">
+          <SheetTitle className="sr-only">API assistant</SheetTitle>
+          {mobileChat && chat(() => setMobileChat(false))}
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+}
+
+function DocNav({ slug, origin, onPick }: { slug: string; origin: string; onPick: () => void }) {
+  const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
+  const md = useMemo(() => fillDoc(DOC_SOURCE, origin), [origin]);
+  const needle = q.trim().toLowerCase();
+  const pages = needle
+    ? DOC_PAGES.filter((p) => p.title.toLowerCase().includes(needle) || p.md.toLowerCase().includes(needle))
+    : DOC_PAGES;
 
   const saveMd = () => downloadBlob(new Blob([md], { type: "text/markdown;charset=utf-8" }), `${FILE}.md`);
-  const saveDoc = () => downloadBlob(docLegacyBlob(md, TITLE), `${FILE}.doc`);
+  const saveDoc = () => downloadBlob(docLegacyBlob(md, DOC_TITLE), `${FILE}.doc`);
   const saveDocx = async () => {
     setBusy(true);
     try {
-      downloadBlob(await docxBlob(md, TITLE), `${FILE}.docx`);
+      downloadBlob(await docxBlob(md, DOC_TITLE), `${FILE}.docx`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not build the Word file");
     } finally {
@@ -52,54 +101,66 @@ function DocPage() {
       toast.error("Allow pop-ups to save the PDF");
       return;
     }
-    w.document.write(docStandaloneHtml(md, TITLE));
+    w.document.write(docStandaloneHtml(md, DOC_TITLE));
     w.document.close();
     toast.message("Choose “Save as PDF” in the print window");
     setTimeout(() => w.print(), 400);
   };
-
-  const btn = "inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-[13px] font-bold text-foreground ring-1 ring-border transition hover:bg-muted disabled:opacity-60";
+  const dl = "flex items-center gap-2 rounded-lg px-2.5 py-2 text-[12.5px] font-bold text-muted-foreground ring-1 ring-border transition hover:bg-muted hover:text-foreground disabled:opacity-60";
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className="lg:pl-[var(--sidebar-w)]">
-        <div className="relative h-[56px] lg:h-14">
-          <TopBar />
-        </div>
-        <main className="mx-auto max-w-6xl px-3 pb-28 sm:px-4 lg:px-8 lg:pb-16">
-          <div className="mt-4 rounded-2xl bg-card/70 p-4 ring-1 ring-border sm:p-5">
-            <p className="text-[12px] font-bold uppercase tracking-wide text-brand">Developers</p>
-            <h1 className="mt-1 text-2xl font-black tracking-tight text-foreground lg:text-3xl">{TITLE}</h1>
-            <p className="mt-2 break-all font-mono text-[13px] text-muted-foreground">{origin}/api/public/v1</p>
-            <p className="mt-3 flex items-start gap-2 text-[13px] text-muted-foreground">
-              <KeyRound className="mt-0.5 size-4 shrink-0 text-brand" />
-              Every data call needs the API token created by the MOVIE MAX admin. Ask the admin for it, then send it as
-              <code className="rounded bg-muted px-1 text-foreground">Authorization: Bearer &lt;token&gt;</code>.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={savePdf} className={btn}><FileDown className="size-4" /> PDF</button>
-              <button type="button" onClick={saveDocx} disabled={busy} className={btn}><FileText className="size-4" /> {busy ? "Building…" : "DOCX"}</button>
-              <button type="button" onClick={saveDoc} className={btn}><FileType className="size-4" /> DOC</button>
-              <button type="button" onClick={saveMd} className={btn}><FileCode2 className="size-4" /> Markdown</button>
-            </div>
-          </div>
+    <div className="flex min-h-full flex-col gap-5 p-4">
+      <label className="flex h-10 items-center gap-2 rounded-xl bg-muted px-3 text-muted-foreground ring-1 ring-border focus-within:ring-brand">
+        <Search className="size-4 shrink-0" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search the guide" className="min-w-0 flex-1 bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground" />
+      </label>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-            <nav className="hidden lg:block">
-              <div className="sticky top-20 max-h-[calc(100vh-6rem)] space-y-1 overflow-y-auto text-[13px]">
-                {toc.map((t) => (
-                  <a key={t.id} href={`#${t.id}`} className={`block rounded-lg px-2 py-1 transition hover:bg-card hover:text-foreground ${t.depth === 1 ? "font-bold text-foreground" : "pl-4 text-muted-foreground"}`}>
-                    {t.text}
-                  </a>
-                ))}
-              </div>
-            </nav>
-            <article className="api-doc min-w-0" dangerouslySetInnerHTML={{ __html: html }} />
-          </div>
-        </main>
+      <Link to="/developer" onClick={onPick} className="block rounded-2xl bg-gradient-to-br from-brand/20 to-brand/5 p-4 ring-1 ring-brand/30 transition hover:ring-brand/60">
+        <span className="flex items-center gap-2 text-[13px] font-black text-foreground">
+          <KeyRound className="size-4 text-brand" /> Get your API key
+        </span>
+        <span className="mt-1 block text-[12px] leading-snug text-muted-foreground">Choose a plan and create keys in the developer dashboard.</span>
+      </Link>
+
+      <nav className="space-y-0.5">
+        <p className="px-2 pb-1 text-[11px] font-black uppercase tracking-wider text-muted-foreground">Guide</p>
+        {pages.map((p) => {
+          const on = p.slug === slug;
+          return (
+            <div key={p.slug}>
+              <Link
+                to="/doc/$slug"
+                params={{ slug: p.slug }}
+                onClick={onPick}
+                className={`flex items-center gap-2.5 rounded-lg px-2 py-2 text-[13.5px] font-bold transition ${on ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}
+              >
+                <span className={`grid size-6 shrink-0 place-items-center rounded-md text-[11px] font-black ${on ? "bg-brand text-brand-foreground" : "bg-muted text-muted-foreground"}`}>{p.number}</span>
+                {p.title}
+              </Link>
+              {on && p.sections.length > 0 && (
+                <div className="my-1 ml-5 border-l border-border pl-3">
+                  {p.sections.map((s) => (
+                    <a key={s.id} href={`#${s.id}`} onClick={onPick} className="block truncate py-1 text-[12.5px] text-muted-foreground transition hover:text-foreground">
+                      {s.text}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {pages.length === 0 && <p className="px-2 text-[12px] text-muted-foreground">Nothing matches “{q}”.</p>}
+      </nav>
+
+      <div className="mt-auto space-y-2 border-t border-border pt-4">
+        <p className="px-1 text-[11px] font-black uppercase tracking-wider text-muted-foreground">Save the full guide</p>
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" onClick={savePdf} className={dl}><FileDown className="size-4" /> PDF</button>
+          <button type="button" onClick={saveDocx} disabled={busy} className={dl}><FileText className="size-4" /> {busy ? "…" : "DOCX"}</button>
+          <button type="button" onClick={saveDoc} className={dl}><FileType className="size-4" /> DOC</button>
+          <button type="button" onClick={saveMd} className={dl}><FileCode2 className="size-4" /> MD</button>
+        </div>
       </div>
-      <MobileNav />
     </div>
   );
 }

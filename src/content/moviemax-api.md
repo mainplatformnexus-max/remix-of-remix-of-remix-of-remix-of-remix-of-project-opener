@@ -9,7 +9,7 @@ Version 1 · Base address: `{{ORIGIN}}/api/public/v1`
 This API lets another website or app show the full MOVIE MAX library: English movies and series (MovieBox), Luganda translated titles with their VJ, and the Luo, Luganda and Teso titles uploaded by MOVIE MAX admins. Everything — lists, details, search, playing, downloading and subtitles — is called **on {{HOST}}**. Your app never talks to MovieBox, Narabox or Firebase directly.
 
 - **Read-only:** every endpoint is `GET` and returns JSON (play/download links return video).
-- **API token required:** every data endpoint needs the MOVIE MAX API token (see section 2).
+- **API key required:** every data endpoint needs an API key from a paid developer plan (see section 2).
 - **Open to any site:** CORS allows every origin, so it works from a browser, a mobile app or a server.
 - **One domain everywhere:** every `playUrl`, `downloadUrl` and subtitle link in the answers points back to `{{ORIGIN}}`.
 
@@ -19,7 +19,7 @@ This API lets another website or app show the full MOVIE MAX library: English mo
 {{ORIGIN}}/api/public/v1
 ```
 
-Opening the base address (no token needed) returns the list of every endpoint, already filled in with this domain.
+Opening the base address (no key needed) returns the list of every endpoint, already filled in with this domain.
 
 ## 1.2 Response format
 
@@ -37,10 +37,12 @@ Every JSON answer has the same envelope:
 |---|---|
 | 200 | Success — read `data`. |
 | 400 | A parameter is missing or invalid (e.g. Missing q, Invalid id). |
-| 401 | The API token is missing or wrong. |
+| 401 | The API key is missing or wrong. |
+| 402 | Your developer plan has ended — renew it in the dashboard. |
+| 429 | Too many requests this second, or the monthly quota is used up. |
 | 404 | Unknown endpoint or title not found. |
 | 502 | The upstream catalog is temporarily unavailable — retry after a few seconds. |
-| 503 | The admin has not created an API token yet, or it could not be checked — retry shortly. |
+| 503 | The key could not be checked right now — retry shortly. |
 
 ## 1.3 All endpoints at a glance
 
@@ -62,25 +64,66 @@ Every JSON answer has the same envelope:
 | `/luo?page=` · `/luo/title/{id}` | Luo titles and details |
 | `/teso?page=` · `/teso/title/{id}` | Teso titles and details |
 
-# 2. API token
+# 2. API key & plans
 
-The MOVIE MAX admin creates **one API token for all developers** in **Dashboard → Settings → Developer API token**. Ask the admin for it. Send it with every request in any one of these ways:
+Every data endpoint needs an **API key**. Keys are created in the **Developer dashboard** at [{{ORIGIN}}/developer]({{ORIGIN}}/developer) and only work while you have a **paid developer plan**.
+
+## 2.1 Get your API key
+
+1. Sign in on [{{HOST}}]({{ORIGIN}}) (create a free account if you don't have one).
+2. Open **Dashboard** in the header (or go to `{{ORIGIN}}/developer`).
+3. Pick a plan, choose **Monthly** or **Yearly**, and pay with mobile money, PayPal or card.
+4. Press **Create API key**, give it a name and copy it. The full key (it starts with `mmx_live_`) is shown **only once** — keep it safe.
+
+## 2.2 Sending the key
 
 | Method | Example |
 |---|---|
-| Header (recommended) | `Authorization: Bearer YOUR_API_TOKEN` |
-| Header | `X-API-Key: YOUR_API_TOKEN` |
-| Query string | `?api_key=YOUR_API_TOKEN` |
+| Header (recommended) | `Authorization: Bearer YOUR_API_KEY` |
+| Header | `X-API-Key: YOUR_API_KEY` |
+| Query string | `?api_key=YOUR_API_KEY` |
 
 ```bash
-curl -H "Authorization: Bearer YOUR_API_TOKEN" \
+curl -H "Authorization: Bearer YOUR_API_KEY" \
   "{{ORIGIN}}/api/public/v1/moviebox/trending"
 ```
 
-- A missing or wrong token returns **401** `{ "ok": false, "error": "Invalid or missing API token" }`.
-- When the admin replaces the token, the old one stops working within about a minute — update your apps with the new one.
-- **Play, download and subtitle links** (`/api/public/movie`, `/api/public/stream`, `/api/public/subtitle`) that come back in answers work **without** the token, so they can go straight into `<video>`, `<track>` and `<a>` tags.
-- Keep the token on your server when you can. If you must use it in browser code, anyone who views your page source can copy it.
+- **Play, download and subtitle links** (`/api/public/movie`, `/api/public/stream`, `/api/public/subtitle`) that come back in answers work **without** the key and do not count against your quota, so they can go straight into `<video>`, `<track>` and `<a>` tags.
+- Keep the key on your server when you can. If you must use it in browser code, anyone who views your page source can copy it — delete and re-create it in the dashboard if it leaks.
+
+## 2.3 Plans
+
+| Plan | Monthly | Yearly (2 months free) | Requests / month | Requests / second | API keys |
+|---|---|---|---|---|---|
+| Developer | $9.99 | $99.90 | 10,000 | 5 | 1 |
+| Pro | $24.99 | $249.90 | 100,000 | 15 | 3 |
+| Business | $59.99 | $599.90 | 500,000 | 30 | 10 |
+| Premium | $149.99 | $1,499.90 | Unlimited | 100 | Unlimited |
+| Custom | Contact us | Contact us | Your needs | Your needs | Your needs |
+
+**Premium** also includes full API access, priority support and commercial usage, with no monthly request quota.
+
+**Custom plan:** email [nexusplatformafrica@gmail.com](mailto:nexusplatformafrica@gmail.com) or WhatsApp [+256 795 592 662](https://wa.me/256795592662).
+
+## 2.4 Limits & headers
+
+- The **monthly quota** counts every data call made with your keys in a calendar month (UTC) and resets on the 1st.
+- The **rate limit** is counted per key, per second.
+- Every answer carries your current numbers:
+
+| Header | Meaning |
+|---|---|
+| `X-Plan` | Your plan name |
+| `X-RateLimit-Limit` / `X-RateLimit-Remaining` | Requests allowed per second / left this second |
+| `X-Quota-Limit` / `X-Quota-Used` / `X-Quota-Remaining` | Monthly quota, used, left |
+| `Retry-After` | Seconds to wait after a 429 |
+
+| Status | Error | What to do |
+|---|---|---|
+| 401 | Invalid or missing API token | Check the key, or create a new one |
+| 402 | No active developer plan | Renew or buy a plan in the dashboard |
+| 429 | Rate limit | Wait 1 second and retry |
+| 429 | Monthly quota reached | Upgrade, or wait for the next month |
 
 # 3. Search
 
@@ -408,7 +451,7 @@ Opening a `downloadUrl` hands the file to the browser's own download manager, ex
 
 ```js
 const API = "{{ORIGIN}}/api/public/v1";
-const TOKEN = "YOUR_API_TOKEN"; // from the MOVIE MAX admin
+const TOKEN = "YOUR_API_KEY"; // from {{ORIGIN}}/developer
 
 async function api(path) {
   const res = await fetch(API + path, { headers: { Authorization: `Bearer ${TOKEN}` } });
@@ -444,7 +487,7 @@ const luo = await api("/luo?page=1");
 
 ```php
 $api = "{{ORIGIN}}/api/public/v1";
-$ctx = stream_context_create(["http" => ["header" => "Authorization: Bearer YOUR_API_TOKEN"]]);
+$ctx = stream_context_create(["http" => ["header" => "Authorization: Bearer YOUR_API_KEY"]]);
 $data = json_decode(file_get_contents("$api/moviebox/trending", false, $ctx), true);
 foreach ($data["data"] as $item) {
   echo $item["title"] . " (" . $item["year"] . ")\n";
@@ -457,7 +500,7 @@ foreach ($data["data"] as $item) {
 import requests
 
 API = "{{ORIGIN}}/api/public/v1"
-HEADERS = {"Authorization": "Bearer YOUR_API_TOKEN"}
+HEADERS = {"Authorization": "Bearer YOUR_API_KEY"}
 
 trending = requests.get(f"{API}/moviebox/trending", headers=HEADERS).json()["data"]
 for item in trending:

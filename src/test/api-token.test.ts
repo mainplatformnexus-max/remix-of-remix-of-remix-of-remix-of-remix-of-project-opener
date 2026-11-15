@@ -37,21 +37,21 @@ describe("API access check", () => {
     try {
       resetApiTokenCache();
       const url = "https://x.site/api/public/v1/luo";
-      expect(await checkApiAccess(req(url, { authorization: `Bearer ${token}` }), {})).toBeNull();
-      expect((await checkApiAccess(req(url, { authorization: "Bearer wrong" }), {}))?.status).toBe(401);
-      expect((await checkApiAccess(req(url), {}))?.status).toBe(401);
+      expect((await checkApiAccess(req(url, { authorization: `Bearer ${token}` }), {}, "https://x.site")).denied).toBeNull();
+      expect((await checkApiAccess(req(url, { authorization: "Bearer wrong" }), {}, "https://x.site")).denied?.status).toBe(401);
+      expect((await checkApiAccess(req(url), {}, "https://x.site")).denied?.status).toBe(401);
     } finally {
       globalThis.fetch = orig;
       resetApiTokenCache();
     }
   });
-  it("stays closed (503) until the admin creates a token", async () => {
+  it("turns tokens away (401) while no admin token exists", async () => {
     const { checkApiAccess, resetApiTokenCache } = await import("@/lib/api-token");
     const orig = globalThis.fetch;
     globalThis.fetch = (async () => new Response("{}", { status: 404 })) as typeof fetch;
     try {
       resetApiTokenCache();
-      expect((await checkApiAccess(req("https://x.site/api/public/v1/luo", { "x-api-key": "anything" }), {}))?.status).toBe(503);
+      expect((await checkApiAccess(req("https://x.site/api/public/v1/luo", { "x-api-key": "anything" }), {}, "https://x.site")).denied?.status).toBe(401);
     } finally {
       globalThis.fetch = orig;
       resetApiTokenCache();

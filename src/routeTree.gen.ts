@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ChannelsRouteImport } from './routes/channels'
+import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as DocRouteImport } from './routes/doc'
+import { Route as DocDotmdRouteImport } from './routes/doc[.]md'
 import { Route as MusicRouteImport } from './routes/music'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -30,9 +32,12 @@ import { Route as SitemapVideosDotxmlRouteImport } from './routes/sitemap-videos
 import { Route as SitemapVjDotxmlRouteImport } from './routes/sitemap-vj[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TutorialRouteImport } from './routes/tutorial'
+import { Route as ApiDocChatRouteImport } from './routes/api/doc-chat'
 import { Route as ArtistIdRouteImport } from './routes/artist.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ChannelIdRouteImport } from './routes/channel.$id'
+import { Route as DocIndexRouteImport } from './routes/doc.index'
+import { Route as DocSlugRouteImport } from './routes/doc.$slug'
 import { Route as LugandaIndexRouteImport } from './routes/luganda.index'
 import { Route as LugandaIdRouteImport } from './routes/luganda.$id'
 import { Route as LuoIndexRouteImport } from './routes/luo.index'
@@ -67,9 +72,19 @@ const ChannelsRoute = ChannelsRouteImport.update({
   path: '/channels',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeveloperRoute = DeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocRoute = DocRouteImport.update({
   id: '/doc',
   path: '/doc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocDotmdRoute = DocDotmdRouteImport.update({
+  id: '/doc.md',
+  path: '/doc.md',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MusicRoute = MusicRouteImport.update({
@@ -158,6 +173,11 @@ const TutorialRoute = TutorialRouteImport.update({
   path: '/tutorial',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDocChatRoute = ApiDocChatRouteImport.update({
+  id: '/api/doc-chat',
+  path: '/api/doc-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArtistIdRoute = ArtistIdRouteImport.update({
   id: '/artist/$id',
   path: '/artist/$id',
@@ -172,6 +192,16 @@ const ChannelIdRoute = ChannelIdRouteImport.update({
   id: '/channel/$id',
   path: '/channel/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DocIndexRoute = DocIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocRoute,
+} as any)
+const DocSlugRoute = DocSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => DocRoute,
 } as any)
 const LugandaIndexRoute = LugandaIndexRouteImport.update({
   id: '/luganda/',
@@ -268,7 +298,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
-  '/doc': typeof DocRoute
+  '/developer': typeof DeveloperRoute
+  '/doc': typeof DocRouteWithChildren
+  '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
   '/profile': typeof ProfileRoute
@@ -286,15 +318,18 @@ export interface FileRoutesByFullPath {
   '/sitemap-vj.xml': typeof SitemapVjDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tutorial': typeof TutorialRoute
+  '/api/doc-chat': typeof ApiDocChatRoute
   '/artist/$id': typeof ArtistIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/channel/$id': typeof ChannelIdRoute
+  '/doc/$slug': typeof DocSlugRoute
   '/luganda/$id': typeof LugandaIdRoute
   '/luo/$id': typeof LuoIdRoute
   '/music-artist/$slug': typeof MusicArtistSlugRoute
   '/pay/$id': typeof PayIdRoute
   '/teso/$id': typeof TesoIdRoute
   '/watch/$id': typeof WatchIdRoute
+  '/doc/': typeof DocIndexRoute
   '/luganda/': typeof LugandaIndexRoute
   '/luo/': typeof LuoIndexRoute
   '/teso/': typeof TesoIndexRoute
@@ -312,7 +347,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
-  '/doc': typeof DocRoute
+  '/developer': typeof DeveloperRoute
+  '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
   '/profile': typeof ProfileRoute
@@ -330,15 +366,18 @@ export interface FileRoutesByTo {
   '/sitemap-vj.xml': typeof SitemapVjDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tutorial': typeof TutorialRoute
+  '/api/doc-chat': typeof ApiDocChatRoute
   '/artist/$id': typeof ArtistIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/channel/$id': typeof ChannelIdRoute
+  '/doc/$slug': typeof DocSlugRoute
   '/luganda/$id': typeof LugandaIdRoute
   '/luo/$id': typeof LuoIdRoute
   '/music-artist/$slug': typeof MusicArtistSlugRoute
   '/pay/$id': typeof PayIdRoute
   '/teso/$id': typeof TesoIdRoute
   '/watch/$id': typeof WatchIdRoute
+  '/doc': typeof DocIndexRoute
   '/luganda': typeof LugandaIndexRoute
   '/luo': typeof LuoIndexRoute
   '/teso': typeof TesoIndexRoute
@@ -357,7 +396,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
-  '/doc': typeof DocRoute
+  '/developer': typeof DeveloperRoute
+  '/doc': typeof DocRouteWithChildren
+  '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
   '/profile': typeof ProfileRoute
@@ -375,15 +416,18 @@ export interface FileRoutesById {
   '/sitemap-vj.xml': typeof SitemapVjDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tutorial': typeof TutorialRoute
+  '/api/doc-chat': typeof ApiDocChatRoute
   '/artist/$id': typeof ArtistIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/channel/$id': typeof ChannelIdRoute
+  '/doc/$slug': typeof DocSlugRoute
   '/luganda/$id': typeof LugandaIdRoute
   '/luo/$id': typeof LuoIdRoute
   '/music-artist/$slug': typeof MusicArtistSlugRoute
   '/pay/$id': typeof PayIdRoute
   '/teso/$id': typeof TesoIdRoute
   '/watch/$id': typeof WatchIdRoute
+  '/doc/': typeof DocIndexRoute
   '/luganda/': typeof LugandaIndexRoute
   '/luo/': typeof LuoIndexRoute
   '/teso/': typeof TesoIndexRoute
@@ -403,7 +447,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/channels'
+    | '/developer'
     | '/doc'
+    | '/doc.md'
     | '/music'
     | '/plans'
     | '/profile'
@@ -421,15 +467,18 @@ export interface FileRouteTypes {
     | '/sitemap-vj.xml'
     | '/sitemap.xml'
     | '/tutorial'
+    | '/api/doc-chat'
     | '/artist/$id'
     | '/category/$slug'
     | '/channel/$id'
+    | '/doc/$slug'
     | '/luganda/$id'
     | '/luo/$id'
     | '/music-artist/$slug'
     | '/pay/$id'
     | '/teso/$id'
     | '/watch/$id'
+    | '/doc/'
     | '/luganda/'
     | '/luo/'
     | '/teso/'
@@ -447,7 +496,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/channels'
-    | '/doc'
+    | '/developer'
+    | '/doc.md'
     | '/music'
     | '/plans'
     | '/profile'
@@ -465,15 +515,18 @@ export interface FileRouteTypes {
     | '/sitemap-vj.xml'
     | '/sitemap.xml'
     | '/tutorial'
+    | '/api/doc-chat'
     | '/artist/$id'
     | '/category/$slug'
     | '/channel/$id'
+    | '/doc/$slug'
     | '/luganda/$id'
     | '/luo/$id'
     | '/music-artist/$slug'
     | '/pay/$id'
     | '/teso/$id'
     | '/watch/$id'
+    | '/doc'
     | '/luganda'
     | '/luo'
     | '/teso'
@@ -491,7 +544,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/channels'
+    | '/developer'
     | '/doc'
+    | '/doc.md'
     | '/music'
     | '/plans'
     | '/profile'
@@ -509,15 +564,18 @@ export interface FileRouteTypes {
     | '/sitemap-vj.xml'
     | '/sitemap.xml'
     | '/tutorial'
+    | '/api/doc-chat'
     | '/artist/$id'
     | '/category/$slug'
     | '/channel/$id'
+    | '/doc/$slug'
     | '/luganda/$id'
     | '/luo/$id'
     | '/music-artist/$slug'
     | '/pay/$id'
     | '/teso/$id'
     | '/watch/$id'
+    | '/doc/'
     | '/luganda/'
     | '/luo/'
     | '/teso/'
@@ -536,7 +594,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ChannelsRoute: typeof ChannelsRoute
-  DocRoute: typeof DocRoute
+  DeveloperRoute: typeof DeveloperRoute
+  DocRoute: typeof DocRouteWithChildren
+  DocDotmdRoute: typeof DocDotmdRoute
   MusicRoute: typeof MusicRoute
   PlansRoute: typeof PlansRoute
   ProfileRoute: typeof ProfileRoute
@@ -554,6 +614,7 @@ export interface RootRouteChildren {
   SitemapVjDotxmlRoute: typeof SitemapVjDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TutorialRoute: typeof TutorialRoute
+  ApiDocChatRoute: typeof ApiDocChatRoute
   ArtistIdRoute: typeof ArtistIdRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ChannelIdRoute: typeof ChannelIdRoute
@@ -600,11 +661,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChannelsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/developer': {
+      id: '/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof DeveloperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/doc': {
       id: '/doc'
       path: '/doc'
       fullPath: '/doc'
       preLoaderRoute: typeof DocRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doc.md': {
+      id: '/doc.md'
+      path: '/doc.md'
+      fullPath: '/doc.md'
+      preLoaderRoute: typeof DocDotmdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/music': {
@@ -726,6 +801,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorialRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/doc-chat': {
+      id: '/api/doc-chat'
+      path: '/api/doc-chat'
+      fullPath: '/api/doc-chat'
+      preLoaderRoute: typeof ApiDocChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/artist/$id': {
       id: '/artist/$id'
       path: '/artist/$id'
@@ -746,6 +828,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/channel/$id'
       preLoaderRoute: typeof ChannelIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/doc/': {
+      id: '/doc/'
+      path: '/'
+      fullPath: '/doc/'
+      preLoaderRoute: typeof DocIndexRouteImport
+      parentRoute: typeof DocRoute
+    }
+    '/doc/$slug': {
+      id: '/doc/$slug'
+      path: '/$slug'
+      fullPath: '/doc/$slug'
+      preLoaderRoute: typeof DocSlugRouteImport
+      parentRoute: typeof DocRoute
     }
     '/luganda/': {
       id: '/luganda/'
@@ -876,11 +972,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DocRouteChildren {
+  DocSlugRoute: typeof DocSlugRoute
+  DocIndexRoute: typeof DocIndexRoute
+}
+
+const DocRouteChildren: DocRouteChildren = {
+  DocSlugRoute: DocSlugRoute,
+  DocIndexRoute: DocIndexRoute,
+}
+
+const DocRouteWithChildren = DocRoute._addFileChildren(DocRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ChannelsRoute: ChannelsRoute,
-  DocRoute: DocRoute,
+  DeveloperRoute: DeveloperRoute,
+  DocRoute: DocRouteWithChildren,
+  DocDotmdRoute: DocDotmdRoute,
   MusicRoute: MusicRoute,
   PlansRoute: PlansRoute,
   ProfileRoute: ProfileRoute,
@@ -898,6 +1008,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapVjDotxmlRoute: SitemapVjDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TutorialRoute: TutorialRoute,
+  ApiDocChatRoute: ApiDocChatRoute,
   ArtistIdRoute: ArtistIdRoute,
   CategorySlugRoute: CategorySlugRoute,
   ChannelIdRoute: ChannelIdRoute,
