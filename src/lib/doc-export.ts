@@ -1,4 +1,4 @@
-import { marked, type Token, type Tokens } from "marked";
+import { Marked, marked, type Token, type Tokens } from "marked";
 
 /** Developer-guide helpers: fill in the live domain and export to MD / HTML / DOC / DOCX. */
 
@@ -22,7 +22,7 @@ export function docToc(md: string): TocEntry[] {
 
 /** Markdown → HTML with heading ids (our own static guide, not user input). */
 export function docToHtml(md: string): string {
-  const m = new marked.Marked({ gfm: true });
+  const m = new Marked({ gfm: true });
   m.use({
     renderer: {
       heading({ tokens, depth, text }) {
