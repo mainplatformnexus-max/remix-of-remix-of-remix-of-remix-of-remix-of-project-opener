@@ -16,18 +16,20 @@ import { loadNaraboxCatalog } from "@/lib/narabox.functions";
 import { cleanNaraboxTitle, type NaraboxItem } from "@/lib/narabox";
 import { listCollection } from "@/lib/firestore-rest";
 import { toEpisode, toTitle, type LuoTitle } from "@/lib/luo";
+import { checkApiAccess } from "@/lib/api-token";
 
 /**
  * MOVIE MAX public content API (read-only, JSON, CORS-open).
  * Everything is served from this site's own domain; play/download/subtitle
  * links point back to /api/public/movie, /api/public/stream, /api/public/subtitle.
- * Full reference: docs/MOVIEMAX-API.md
+ * Every data endpoint needs the admin-created API token (see src/lib/api-token.ts).
+ * Full reference: src/content/moviemax-api.md (shown on /doc)
  */
 
 const cors = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, OPTIONS",
-  "access-control-allow-headers": "Content-Type",
+  "access-control-allow-headers": "Content-Type, Authorization, X-API-Key",
   "access-control-max-age": "86400",
 };
 
@@ -40,7 +42,7 @@ class ApiError extends Error {
 const json = (data: unknown, maxAge = 120) =>
   Response.json(
     { ok: true, data },
-    { headers: { ...cors, "cache-control": `public, max-age=${maxAge}, s-maxage=${maxAge}` } },
+    { headers: { ...cors, "cache-control": `private, max-age=${maxAge}`, vary: "Authorization, X-API-Key" } },
   );
 const fail = (message: string, status: number) =>
   Response.json({ ok: false, error: message }, { status, headers: cors });
@@ -308,6 +310,8 @@ function index(origin: string) {
   return json({
     name: "MOVIE MAX API",
     version: "v1",
+    docs: `${origin}/doc`,
+    auth: "Every endpoint below needs the API token from the MOVIE MAX admin: header 'Authorization: Bearer <token>' or 'X-API-Key: <token>', or query '?api_key=<token>'.",
     endpoints: {
       search: `${b}/search?q=`,
       moviebox: [`${b}/moviebox/home`, `${b}/moviebox/feed?page=0`, `${b}/moviebox/trending`, `${b}/moviebox/search?q=&page=1`, `${b}/moviebox/title/{id}`, `${b}/moviebox/sources/{id}?se=0&ep=0`, `${b}/moviebox/related/{id}`],
@@ -329,6 +333,8 @@ export const Route = createFileRoute("/api/public/v1/$")({
         try {
           const [area, ...rest] = parts;
           if (!area) return index(origin);
+          const denied = await checkApiAccess(request, cors);
+          if (denied) return denied;
           if (area === "search") return await search(url.searchParams, origin);
           if (area === "moviebox") return await moviebox(rest, url.searchParams, origin);
           if ((LANGS as readonly string[]).includes(area)) return await library(area as (typeof LANGS)[number], rest, url.searchParams, origin);

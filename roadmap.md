@@ -75,3 +75,7 @@
 
 - [x] Fix deploy failure: removed Worker cron trigger (free Cloudflare plan limit of 5 crons per account).
 - [ ] MovieBox playback on luofilm.site — blocked: movie file server refuses Railway and Cloudflare networks; relay must be hosted on another network (e.g. Google Cloud Run), then saved in Settings → Movie relay.
+
+## Developer docs page
+- [x] /doc page showing the developer API guide with the current domain; download as PDF, DOCX, DOC, MD
+- [x] Admin creates one developer API token in Settings; /api/public/v1 requires it
