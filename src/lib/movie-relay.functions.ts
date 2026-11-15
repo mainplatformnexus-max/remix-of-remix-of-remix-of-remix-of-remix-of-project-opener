@@ -72,7 +72,7 @@ async function checkMovieFile(relay: string): Promise<RelayCheck> {
   if (res.status !== 206 && !res.ok) {
     return {
       ok: false,
-      message: `MovieBox's movie file server refuses this relay (${res.status} ${text.trim()}). Host the relay with a different provider.`,
+      message: `MovieBox's movie file server refuses this relay (${res.status} ${text.trim()}). ${res.status === 426 ? "It blocks US servers: redeploy the relay in a Europe or Asia region (e.g. Frankfurt or Singapore)." : "Host the relay with a different provider."}`,
     };
   }
   return { ok: true, message: "ok" };
