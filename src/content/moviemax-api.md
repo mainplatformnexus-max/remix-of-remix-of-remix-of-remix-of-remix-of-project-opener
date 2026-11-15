@@ -451,7 +451,7 @@ Opening a `downloadUrl` hands the file to the browser's own download manager, ex
 
 ```js
 const API = "{{ORIGIN}}/api/public/v1";
-const TOKEN = "YOUR_API_TOKEN"; // from the MOVIE MAX admin
+const TOKEN = "YOUR_API_KEY"; // from {{ORIGIN}}/developer
 
 async function api(path) {
   const res = await fetch(API + path, { headers: { Authorization: `Bearer ${TOKEN}` } });
@@ -487,7 +487,7 @@ const luo = await api("/luo?page=1");
 
 ```php
 $api = "{{ORIGIN}}/api/public/v1";
-$ctx = stream_context_create(["http" => ["header" => "Authorization: Bearer YOUR_API_TOKEN"]]);
+$ctx = stream_context_create(["http" => ["header" => "Authorization: Bearer YOUR_API_KEY"]]);
 $data = json_decode(file_get_contents("$api/moviebox/trending", false, $ctx), true);
 foreach ($data["data"] as $item) {
   echo $item["title"] . " (" . $item["year"] . ")\n";
@@ -500,7 +500,7 @@ foreach ($data["data"] as $item) {
 import requests
 
 API = "{{ORIGIN}}/api/public/v1"
-HEADERS = {"Authorization": "Bearer YOUR_API_TOKEN"}
+HEADERS = {"Authorization": "Bearer YOUR_API_KEY"}
 
 trending = requests.get(f"{API}/moviebox/trending", headers=HEADERS).json()["data"]
 for item in trending:
