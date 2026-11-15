@@ -25,3 +25,36 @@ describe("developer API token", () => {
     expect(await tokenMatches(token, null)).toBe(false);
   });
 });
+
+describe("API access check", () => {
+  it("lets the stored token in and turns others away with 401", async () => {
+    const { checkApiAccess, resetApiTokenCache } = await import("@/lib/api-token");
+    const token = newApiToken();
+    const hash = await sha256Hex(token);
+    const orig = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      Response.json({ fields: { value: { mapValue: { fields: { hash: { stringValue: hash } } } } } })) as typeof fetch;
+    try {
+      resetApiTokenCache();
+      const url = "https://x.site/api/public/v1/luo";
+      expect(await checkApiAccess(req(url, { authorization: `Bearer ${token}` }), {})).toBeNull();
+      expect((await checkApiAccess(req(url, { authorization: "Bearer wrong" }), {}))?.status).toBe(401);
+      expect((await checkApiAccess(req(url), {}))?.status).toBe(401);
+    } finally {
+      globalThis.fetch = orig;
+      resetApiTokenCache();
+    }
+  });
+  it("stays closed (503) until the admin creates a token", async () => {
+    const { checkApiAccess, resetApiTokenCache } = await import("@/lib/api-token");
+    const orig = globalThis.fetch;
+    globalThis.fetch = (async () => new Response("{}", { status: 404 })) as typeof fetch;
+    try {
+      resetApiTokenCache();
+      expect((await checkApiAccess(req("https://x.site/api/public/v1/luo", { "x-api-key": "anything" }), {}))?.status).toBe(503);
+    } finally {
+      globalThis.fetch = orig;
+      resetApiTokenCache();
+    }
+  });
+});

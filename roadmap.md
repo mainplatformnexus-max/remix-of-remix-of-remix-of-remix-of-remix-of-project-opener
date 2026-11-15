@@ -77,5 +77,5 @@
 - [ ] MovieBox playback on luofilm.site — blocked: movie file server refuses Railway and Cloudflare networks; relay must be hosted on another network (e.g. Google Cloud Run), then saved in Settings → Movie relay.
 
 ## Developer docs page
-- [ ] /doc page showing the developer API guide with the current domain; download as PDF, DOCX, DOC, MD
-- [ ] Admin creates one developer API token in Settings; /api/public/v1 requires it
+- [x] /doc page showing the developer API guide with the current domain; download as PDF, DOCX, DOC, MD
+- [x] Admin creates one developer API token in Settings; /api/public/v1 requires it
