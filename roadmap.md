@@ -74,4 +74,4 @@
 - [x] Live TV player plays .m3u8, .ts/.flv, .mpd and .mp4 links with automatic format fallback.
 
 - [x] Fix deploy failure: removed Worker cron trigger (free Cloudflare plan limit of 5 crons per account).
-- [ ] MovieBox playback on luofilm.site (Railway relay blocked by movie file server)
+- [ ] MovieBox playback on luofilm.site — blocked: movie file server refuses Railway and Cloudflare networks; relay must be hosted on another network (e.g. Google Cloud Run), then saved in Settings → Movie relay.
