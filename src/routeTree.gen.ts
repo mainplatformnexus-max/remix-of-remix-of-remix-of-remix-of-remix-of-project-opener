@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ChannelsRouteImport } from './routes/channels'
 import { Route as DocRouteImport } from './routes/doc'
+import { Route as DocDotmdRouteImport } from './routes/doc[.]md'
 import { Route as MusicRouteImport } from './routes/music'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -30,6 +31,7 @@ import { Route as SitemapVideosDotxmlRouteImport } from './routes/sitemap-videos
 import { Route as SitemapVjDotxmlRouteImport } from './routes/sitemap-vj[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TutorialRouteImport } from './routes/tutorial'
+import { Route as ApiDocChatRouteImport } from './routes/api/doc-chat'
 import { Route as ArtistIdRouteImport } from './routes/artist.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ChannelIdRouteImport } from './routes/channel.$id'
@@ -70,6 +72,11 @@ const ChannelsRoute = ChannelsRouteImport.update({
 const DocRoute = DocRouteImport.update({
   id: '/doc',
   path: '/doc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocDotmdRoute = DocDotmdRouteImport.update({
+  id: '/doc.md',
+  path: '/doc.md',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MusicRoute = MusicRouteImport.update({
@@ -156,6 +163,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const TutorialRoute = TutorialRouteImport.update({
   id: '/tutorial',
   path: '/tutorial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocChatRoute = ApiDocChatRouteImport.update({
+  id: '/api/doc-chat',
+  path: '/api/doc-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArtistIdRoute = ArtistIdRouteImport.update({
@@ -269,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
   '/doc': typeof DocRoute
+  '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
   '/profile': typeof ProfileRoute
@@ -286,6 +299,7 @@ export interface FileRoutesByFullPath {
   '/sitemap-vj.xml': typeof SitemapVjDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tutorial': typeof TutorialRoute
+  '/api/doc-chat': typeof ApiDocChatRoute
   '/artist/$id': typeof ArtistIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/channel/$id': typeof ChannelIdRoute
@@ -313,6 +327,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
   '/doc': typeof DocRoute
+  '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
   '/profile': typeof ProfileRoute
@@ -330,6 +345,7 @@ export interface FileRoutesByTo {
   '/sitemap-vj.xml': typeof SitemapVjDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tutorial': typeof TutorialRoute
+  '/api/doc-chat': typeof ApiDocChatRoute
   '/artist/$id': typeof ArtistIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/channel/$id': typeof ChannelIdRoute
@@ -358,6 +374,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/channels': typeof ChannelsRoute
   '/doc': typeof DocRoute
+  '/doc.md': typeof DocDotmdRoute
   '/music': typeof MusicRoute
   '/plans': typeof PlansRoute
   '/profile': typeof ProfileRoute
@@ -375,6 +392,7 @@ export interface FileRoutesById {
   '/sitemap-vj.xml': typeof SitemapVjDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tutorial': typeof TutorialRoute
+  '/api/doc-chat': typeof ApiDocChatRoute
   '/artist/$id': typeof ArtistIdRoute
   '/category/$slug': typeof CategorySlugRoute
   '/channel/$id': typeof ChannelIdRoute
@@ -404,6 +422,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/channels'
     | '/doc'
+    | '/doc.md'
     | '/music'
     | '/plans'
     | '/profile'
@@ -421,6 +440,7 @@ export interface FileRouteTypes {
     | '/sitemap-vj.xml'
     | '/sitemap.xml'
     | '/tutorial'
+    | '/api/doc-chat'
     | '/artist/$id'
     | '/category/$slug'
     | '/channel/$id'
@@ -448,6 +468,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/channels'
     | '/doc'
+    | '/doc.md'
     | '/music'
     | '/plans'
     | '/profile'
@@ -465,6 +486,7 @@ export interface FileRouteTypes {
     | '/sitemap-vj.xml'
     | '/sitemap.xml'
     | '/tutorial'
+    | '/api/doc-chat'
     | '/artist/$id'
     | '/category/$slug'
     | '/channel/$id'
@@ -492,6 +514,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/channels'
     | '/doc'
+    | '/doc.md'
     | '/music'
     | '/plans'
     | '/profile'
@@ -509,6 +532,7 @@ export interface FileRouteTypes {
     | '/sitemap-vj.xml'
     | '/sitemap.xml'
     | '/tutorial'
+    | '/api/doc-chat'
     | '/artist/$id'
     | '/category/$slug'
     | '/channel/$id'
@@ -537,6 +561,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ChannelsRoute: typeof ChannelsRoute
   DocRoute: typeof DocRoute
+  DocDotmdRoute: typeof DocDotmdRoute
   MusicRoute: typeof MusicRoute
   PlansRoute: typeof PlansRoute
   ProfileRoute: typeof ProfileRoute
@@ -554,6 +579,7 @@ export interface RootRouteChildren {
   SitemapVjDotxmlRoute: typeof SitemapVjDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TutorialRoute: typeof TutorialRoute
+  ApiDocChatRoute: typeof ApiDocChatRoute
   ArtistIdRoute: typeof ArtistIdRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ChannelIdRoute: typeof ChannelIdRoute
@@ -605,6 +631,13 @@ declare module '@tanstack/react-router' {
       path: '/doc'
       fullPath: '/doc'
       preLoaderRoute: typeof DocRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doc.md': {
+      id: '/doc.md'
+      path: '/doc.md'
+      fullPath: '/doc.md'
+      preLoaderRoute: typeof DocDotmdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/music': {
@@ -724,6 +757,13 @@ declare module '@tanstack/react-router' {
       path: '/tutorial'
       fullPath: '/tutorial'
       preLoaderRoute: typeof TutorialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/doc-chat': {
+      id: '/api/doc-chat'
+      path: '/api/doc-chat'
+      fullPath: '/api/doc-chat'
+      preLoaderRoute: typeof ApiDocChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/artist/$id': {
@@ -881,6 +921,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ChannelsRoute: ChannelsRoute,
   DocRoute: DocRoute,
+  DocDotmdRoute: DocDotmdRoute,
   MusicRoute: MusicRoute,
   PlansRoute: PlansRoute,
   ProfileRoute: ProfileRoute,
@@ -898,6 +939,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapVjDotxmlRoute: SitemapVjDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TutorialRoute: TutorialRoute,
+  ApiDocChatRoute: ApiDocChatRoute,
   ArtistIdRoute: ArtistIdRoute,
   CategorySlugRoute: CategorySlugRoute,
   ChannelIdRoute: ChannelIdRoute,
