@@ -46,13 +46,16 @@ export async function tokenMatches(token: string | null, hash: string | null | u
 
 type Stored = { hash: string | null } | undefined; // undefined = could not read
 let cached: { hash: string | null; at: number } | null = null;
+let readsDownUntil = 0;
 
 async function readStoredHash(): Promise<Stored> {
+  if (Date.now() < readsDownUntil) return undefined;
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 2500);
   try {
     const res = await fetch(FIRESTORE_DOC, { signal: ctrl.signal });
     if (res.status === 404) return { hash: null };
+    if (res.status === 429) readsDownUntil = Date.now() + 60_000; // daily read quota used up
     if (!res.ok) return undefined;
     const json = (await res.json()) as {
       fields?: { value?: { mapValue?: { fields?: { hash?: { stringValue?: string } } } } };
@@ -103,6 +106,19 @@ export async function checkApiAccess(
   const token = extractApiToken(request);
   if (!token || token.length > 200) return fail("Missing API token — get one at " + origin + "/developer", 401);
 
+  if (token.startsWith("mmx_adm_")) {
+    // Signed admin token: valid by signature alone, so it keeps working when
+    // the database read limit is reached; a readable stored hash still
+    // retires replaced tokens.
+    const { verifySignedKey } = await import("./api-signing.server");
+    if (!(await verifySignedKey(token))) return fail("Invalid or missing API token", 401);
+    const stored = await getApiTokenHash();
+    if (stored === undefined || (await tokenMatches(token, stored))) {
+      return { denied: null, headers: { "x-plan": "admin", "x-quota-limit": "unlimited" } };
+    }
+    return fail("This API token was replaced — ask the site admin for the new one", 401);
+  }
+
   if (token.startsWith("mmx_live_")) {
     const { checkDeveloperKey } = await import("./developer-api");
     const r = await checkDeveloperKey(token, origin);
@@ -112,6 +128,8 @@ export async function checkApiAccess(
 
   const hash = await getApiTokenHash();
   if (await tokenMatches(token, hash ?? null)) return { denied: null, headers: { "x-plan": "admin", "x-quota-limit": "unlimited" } };
-  if (hash === undefined) return fail("API token could not be checked — retry shortly", 503, { "retry-after": "5" });
+  if (hash === undefined) {
+    return fail("This is an old-style API token that needs the database to check it, and the database is busy. Ask the site admin to press \"Replace token\" in Settings for a new token that always works.", 503, { "retry-after": "60" });
+  }
   return fail("Invalid or missing API token", 401);
 }

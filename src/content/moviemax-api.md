@@ -42,7 +42,7 @@ Every JSON answer has the same envelope:
 | 429 | Too many requests this second, or the monthly quota is used up. |
 | 404 | Unknown endpoint or title not found. |
 | 502 | The upstream catalog is temporarily unavailable — retry after a few seconds. |
-| 503 | The key could not be checked right now — retry shortly. |
+| 503 | An old-style key could not be checked right now — create a new key (new keys never need the database). |
 
 ## 1.3 All endpoints at a glance
 

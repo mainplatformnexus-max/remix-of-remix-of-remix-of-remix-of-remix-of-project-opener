@@ -44,9 +44,4 @@ export async function initAnalytics() {
   }
 }
 
-/** Admin identity — checked before any database read so admin can always get in. */
-export const ADMIN_EMAIL = "mainplatform.nexus@gmail.com";
-export const ADMIN_PHONE = "0760734679";
-
-export const digitsOnly = (v: string) => (v ?? "").replace(/[^0-9]/g, "");
-export const phoneToAuthEmail = (phone: string) => `p${digitsOnly(phone)}@luofilm.site`;
+export { ADMIN_EMAIL, ADMIN_PHONE, digitsOnly, phoneToAuthEmail } from "./admin-identity";

@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Save, Link2, DatabaseZap, Radio, CheckCircle2, XCircle, KeyRound, Copy, BookOpen } from "lucide-react";
-import { API_TOKEN_KEY, newApiToken, sha256Hex, type ApiTokenSetting } from "@/lib/api-token";
-import { refreshApiToken } from "@/lib/api-token.functions";
+import { API_TOKEN_KEY, sha256Hex, type ApiTokenSetting } from "@/lib/api-token";
+import { getFbAuth } from "@/lib/firebase";
+import { createAdminApiToken, refreshApiToken } from "@/lib/api-token.functions";
 import { DEFAULT_MOVIE_RELAY, MOVIE_RELAY_KEY, normalizeRelayUrl } from "@/lib/movie-relay";
 import { refreshMovieRelay, testMovieRelay, type RelayCheck } from "@/lib/movie-relay.functions";
 import {
@@ -284,7 +285,11 @@ function ApiTokenPanel() {
       if (tokenQ.data && !window.confirm("Replace the API token? Apps using the old one stop working within a minute.")) {
         throw new Error("cancelled");
       }
-      const token = newApiToken();
+      const user = getFbAuth().currentUser;
+      if (!user) throw new Error("Please sign in again");
+      const made = await createAdminApiToken({ data: { idToken: await user.getIdToken() } });
+      if (!made.ok) throw new Error(made.error);
+      const token = made.token;
       const value: ApiTokenSetting = { hash: await sha256Hex(token), last4: token.slice(-4), created_at: new Date().toISOString() };
       await saveSetting(API_TOKEN_KEY, value);
       await refreshApiToken().catch(() => undefined);

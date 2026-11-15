@@ -13,7 +13,7 @@ export async function callUploadBackend(path: string, body: unknown): Promise<Re
   return new Response(await res.text(), { status: res.status, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 }
 
-export type Uploader = { uid: string; role: "admin" | "artist" };
+export type Uploader = { uid: string; role: "admin" | "artist"; email?: string | undefined };
 /** Last refusal reason (non-sensitive) so the client sees why. */
 export let lastRefusal = "";
 const refuse = (why: string) => { lastRefusal = why; console.error("upload refused:", why); return null; };
@@ -34,7 +34,7 @@ export async function verifyUploader(request: Request): Promise<Uploader | null>
     const decode = (value: string) => Uint8Array.from(atob(value.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
     const header = JSON.parse(new TextDecoder().decode(decode(encodedHeader))) as { alg?: string; kid?: string };
     const claims = JSON.parse(new TextDecoder().decode(decode(encodedClaims))) as {
-      aud?: string; iss?: string; sub?: string; exp?: number; iat?: number;
+      aud?: string; iss?: string; sub?: string; exp?: number; iat?: number; email?: string; email_verified?: boolean;
     };
     const project = "luo-film-2026";
     const now = Math.floor(Date.now() / 1000);
@@ -52,7 +52,7 @@ export async function verifyUploader(request: Request): Promise<Uploader | null>
     const key = await crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
     const valid = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, decode(encodedSignature), new TextEncoder().encode(`${encodedHeader}.${encodedClaims}`));
     if (!valid) return refuse("invalid sign-in");
-    return { uid: claims.sub, role: "admin" };
+    return { uid: claims.sub, role: "admin", email: claims.email };
   } catch (e) {
     return refuse(`check error: ${String(e)}`);
   }

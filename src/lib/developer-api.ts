@@ -11,6 +11,7 @@
 import { fromFirestoreFields } from "./firestore-rest";
 import {
   activeDevPlan,
+  devPlan,
   monthKey,
   quotaAllows,
   rateWindow,
@@ -38,9 +39,20 @@ const toFields = (o: Record<string, unknown>) => Object.fromEntries(Object.entri
 
 class FsUnavailable extends Error {}
 
+/** After a 429 (daily read quota used up) skip reads for a minute so calls stay fast. */
+let readsDownUntil = 0;
+function readGate() {
+  if (Date.now() < readsDownUntil) throw new FsUnavailable("firestore reads paused");
+}
+function noteReadStatus(status: number) {
+  if (status === 429) readsDownUntil = Date.now() + 60_000;
+}
+
 export async function fsGet(path: string): Promise<Record<string, unknown> | null> {
+  readGate();
   const res = await fetch(`${BASE}/${path}?key=${KEY}`, { signal: AbortSignal.timeout(4000) });
   if (res.status === 404) return null;
+  noteReadStatus(res.status);
   if (!res.ok) throw new FsUnavailable(`firestore ${res.status}`);
   const j = (await res.json()) as { fields?: Record<string, never> };
   return fromFirestoreFields(j.fields);
@@ -59,6 +71,7 @@ export async function fsSet(path: string, data: Record<string, unknown>) {
 
 /** All docs in a collection where `field == value` (single-field index, no setup needed). */
 export async function fsWhere(collection: string, field: string, value: string): Promise<Record<string, unknown>[]> {
+  readGate();
   const res = await fetch(`${BASE}:runQuery?key=${KEY}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -71,6 +84,7 @@ export async function fsWhere(collection: string, field: string, value: string):
     }),
     signal: AbortSignal.timeout(6000),
   });
+  noteReadStatus(res.status);
   if (!res.ok) throw new FsUnavailable(`firestore ${res.status}`);
   const rows = (await res.json()) as { document?: { name: string; fields?: Record<string, never> } }[];
   return rows.filter((r) => r.document).map((r) => ({ ...fromFirestoreFields(r.document!.fields), id: r.document!.name.split("/").pop() }));
@@ -199,17 +213,34 @@ export type DeveloperCheck =
 /** Checks a developer key: valid, paid plan, per-second rate and monthly quota; then counts the call. */
 export async function checkDeveloperKey(token: string, origin: string): Promise<DeveloperCheck> {
   const hash = await sha256Hex(token);
+  const { verifySignedKey } = await import("./api-signing.server");
+  const signed = await verifySignedKey(token);
+  const payload = signed && signed.t === "dev" ? signed : null;
   const key = await lookupKey(hash);
-  if (key === undefined) return { ok: false, status: 503, error: "API key could not be checked — retry shortly", headers: { "retry-after": "5" } };
-  if (!key || key.revoked) return { ok: false, status: 401, error: "Invalid or missing API token", headers: {} };
+  let uid: string;
+  if (key === undefined) {
+    // Database unreadable (daily read limit): a signed key carries its owner, plan and expiry.
+    if (!payload) {
+      return { ok: false, status: 503, error: `This is an old-style API key that needs the database to check it, and the database is busy. Create a new key at ${origin}/developer — new keys always work.`, headers: { "retry-after": "60" } };
+    }
+    uid = payload.u;
+  } else {
+    if (!key || key.revoked) return { ok: false, status: 401, error: "Invalid or missing API token", headers: {} };
+    uid = key.user_id;
+  }
 
-  const subs = await userSubscriptions(key.user_id);
-  if (subs === undefined) return { ok: false, status: 503, error: "Plan could not be checked — retry shortly", headers: { "retry-after": "5" } };
-  const active = activeDevPlan(subs);
-  if (!active) {
+  const subs = await userSubscriptions(uid);
+  let plan: DevPlan | null = null;
+  if (subs !== undefined) {
+    plan = activeDevPlan(subs)?.plan ?? null;
+  } else if (payload && payload.u === uid && (payload.e == null || payload.e > Date.now())) {
+    plan = devPlan(payload.p);
+  } else if (!payload) {
+    return { ok: false, status: 503, error: "Plan could not be checked — retry shortly", headers: { "retry-after": "60" } };
+  }
+  if (!plan) {
     return { ok: false, status: 402, error: `No active developer plan — subscribe at ${origin}/developer`, headers: {} };
   }
-  const plan = active.plan;
 
   const rate = rateWindow(hits.get(hash) ?? [], Date.now(), plan.perSecond);
   hits.set(hash, rate.hits);
@@ -218,7 +249,7 @@ export async function checkDeveloperKey(token: string, origin: string): Promise<
     return { ok: false, status: 429, error: `Rate limit: ${plan.perSecond} requests per second on the ${plan.name} plan`, headers: { ...rateHeaders, "retry-after": "1" } };
   }
 
-  const u = await usageFor(hash, key.user_id);
+  const u = await usageFor(hash, uid);
   const used = u.remote + u.pending;
   const quota = plan.monthlyRequests;
   const quotaHeaders: Record<string, string> = quota == null

@@ -59,14 +59,25 @@ export const createDeveloperKey = createServerFn({ method: "POST" })
     const uid = await uidFrom(data.idToken);
     const api = await import("./developer-api");
     const { activeDevPlan } = await import("./developer-plans");
-    const active = activeDevPlan((await api.userSubscriptions(uid, true)) ?? []);
+    const busy = { ok: false as const, error: "The database has reached its daily limit, so your plan can't be checked right now. Please try again in a few hours." };
+    const subs = await api.userSubscriptions(uid, true);
+    if (subs === undefined) return busy;
+    const active = activeDevPlan(subs);
     if (!active) return { ok: false as const, error: "Buy a developer plan first — keys are only created on a paid plan." };
-    const existing = (await api.fsWhere("api_keys", "user_id", uid)).filter((r) => r["revoked"] !== true);
+    let existing: Record<string, unknown>[];
+    try {
+      existing = (await api.fsWhere("api_keys", "user_id", uid)).filter((r) => r["revoked"] !== true);
+    } catch {
+      return busy;
+    }
     const max = active.plan.keys;
     if (max != null && existing.length >= max) {
       return { ok: false as const, error: `Your ${active.plan.name} plan allows ${max} API key${max === 1 ? "" : "s"}. Delete one or upgrade.` };
     }
-    const token = api.newDeveloperKey();
+    // Signed key: carries owner, plan and expiry so calls work even when database reads are exhausted.
+    const { signApiKey } = await import("./api-signing.server");
+    const expires = active.expiresAt ? new Date(active.expiresAt).getTime() : null;
+    const token = await signApiKey({ t: "dev", u: uid, p: active.plan.id, e: expires, i: Date.now() });
     const hash = await api.sha256Hex(token);
     await api.fsSet(`api_keys/${hash}`, {
       user_id: uid,
