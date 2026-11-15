@@ -310,6 +310,8 @@ function index(origin: string) {
   return json({
     name: "MOVIE MAX API",
     version: "v1",
+    docs: `${origin}/doc`,
+    auth: "Every endpoint below needs the API token from the MOVIE MAX admin: header 'Authorization: Bearer <token>' or 'X-API-Key: <token>', or query '?api_key=<token>'.",
     endpoints: {
       search: `${b}/search?q=`,
       moviebox: [`${b}/moviebox/home`, `${b}/moviebox/feed?page=0`, `${b}/moviebox/trending`, `${b}/moviebox/search?q=&page=1`, `${b}/moviebox/title/{id}`, `${b}/moviebox/sources/{id}?se=0&ep=0`, `${b}/moviebox/related/{id}`],
