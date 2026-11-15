@@ -34,9 +34,10 @@
   "observability": {
     "enabled": true
   },
-  // Every minute the Worker pings the payments backend every 3 seconds so it
-  // never sleeps, even when no one has the website open.
+  // No scheduled (cron) triggers: the free Cloudflare plan allows only 5 per
+  // account, and every remix deploy would add another and fail. Open pages keep
+  // the payments backend awake instead.
   "triggers": {
-    "crons": ["* * * * *"]
+    "crons": []
   }
 }
