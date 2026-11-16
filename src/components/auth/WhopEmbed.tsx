@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { CreditCard, Loader2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CardLogo } from "@/components/auth/PaymentLogos";
 import { checkWhopPayment } from "@/lib/whop.functions";
@@ -54,9 +54,12 @@ export default function WhopEmbed({
           setLoaded(false);
           setOpen(true);
         }}
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[14px] font-bold text-background transition hover:opacity-90"
+        aria-label="Pay with card"
+        className="flex min-h-11 w-full items-center justify-center gap-2.5 overflow-hidden rounded-md bg-foreground px-4 text-[15px] font-bold text-background transition hover:opacity-90"
       >
-        <span className="rounded-md bg-white px-1.5 py-1"><CardLogo /></span> Pay with card · Whop
+        <CreditCard className="size-5 shrink-0" />
+        <span>Pay with card</span>
+        <span className="ml-1 hidden shrink-0 items-center rounded bg-white px-1 py-0.5 min-[360px]:inline-flex"><CardLogo /></span>
       </button>
       <Dialog
         open={open}
@@ -89,7 +92,7 @@ export default function WhopEmbed({
             </div>
           )}
           <iframe
-            title="Whop secure checkout"
+            title="Secure card checkout"
             src={url}
             onLoad={() => setLoaded(true)}
             allow="payment *; publickey-credentials-get *"

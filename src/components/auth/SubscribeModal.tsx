@@ -342,7 +342,7 @@ export function SubscribeModal({
         const s = await startCardSession(tx, user.email ?? undefined);
         setCardSession(s.sessionId);
         setPhase("card");
-        setStatus("Pay securely below — powered by Whop.");
+        setStatus("Tap Pay with card below to pay securely.");
       } catch (err) {
         setPhase("failed");
         setStatus(err instanceof Error ? err.message : "Could not start the card payment.");

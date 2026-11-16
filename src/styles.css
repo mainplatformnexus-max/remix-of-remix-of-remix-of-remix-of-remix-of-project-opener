@@ -64,6 +64,10 @@
   --color-brand-foreground: var(--brand-foreground);
   --color-whatsapp: var(--whatsapp);
   --color-whatsapp-foreground: var(--whatsapp-foreground);
+  --color-devnav: var(--devnav);
+  --color-devnav-foreground: var(--devnav-foreground);
+  --color-livetv: var(--livetv);
+  --color-livetv-foreground: var(--livetv-foreground);
   --color-vip: var(--vip);
   --color-vip-foreground: var(--vip-foreground);
   --color-hot: var(--hot);
@@ -107,6 +111,10 @@
   --brand-foreground: oklch(0.99 0 0);
   --whatsapp: oklch(0.72 0.17 150);
   --whatsapp-foreground: oklch(0.99 0 0);
+  --devnav: oklch(0.7 0.15 185);
+  --devnav-foreground: oklch(0.99 0 0);
+  --livetv: oklch(0.6 0.22 25);
+  --livetv-foreground: oklch(0.99 0 0);
   --vip: oklch(0.83 0.14 88);
   --vip-foreground: oklch(0.22 0.05 60);
   --hot: oklch(0.6 0.23 25);

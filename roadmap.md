@@ -86,3 +86,5 @@
 - [ ] API enforces per-key monthly quota + per-second rate limit (Firestore); admin token unlimited
 - [ ] /doc redesign: big sidebar, page-by-page with next/prev, light/dark theme, side AI chat (+ open in ChatGPT/Claude/Gemini)
 - [ ] Header: Dashboard button before profile avatar
+
+- [x] Card button sized like PayPal without the Whop name; developer plans at the top; fix developer-plan card checkout (30-char title); /doc assistant works on own deployments; outside agents open as links; coloured Dashboard and new Live TV header buttons.

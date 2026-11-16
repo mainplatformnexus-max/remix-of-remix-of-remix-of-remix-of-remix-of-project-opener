@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Code2, Crown, LogIn, LogOut, Shield, User as UserIcon } from "lucide-react";
+import { Code2, Crown, LogIn, LogOut, Shield, Tv, User as UserIcon } from "lucide-react";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { Icon3D } from "@/components/Icon3D";
 import { useIsAdmin } from "@/hooks/useAuth";
@@ -114,13 +114,24 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
           </span>
         </Button>
 
+        <a
+          href="https://moviemaxtv.luofilm.site/"
+          target="_blank"
+          rel="noopener"
+          aria-label="Live TV"
+          className="grid size-10 shrink-0 place-items-center justify-self-center rounded-full bg-livetv p-0 text-[12px] font-bold uppercase text-livetv-foreground transition hover:brightness-110 sm:h-8 sm:w-auto sm:px-3.5"
+        >
+          <span className="flex items-center gap-1">
+            <Tv className="size-4 sm:size-3.5" />
+            <span className="hidden sm:inline">Live TV</span>
+          </span>
+        </a>
+
         <Link
           to="/developer"
           aria-label="Developer dashboard"
-          className={`grid size-10 shrink-0 place-items-center justify-self-center rounded-full p-0 text-[12px] font-bold uppercase transition sm:h-8 sm:w-auto sm:px-3.5 ${
-            pathname.startsWith("/developer") || pathname.startsWith("/doc")
-              ? "bg-foreground text-background"
-              : "bg-foreground/12 text-foreground hover:bg-foreground/25"
+          className={`grid size-10 shrink-0 place-items-center justify-self-center rounded-full bg-devnav p-0 text-[12px] font-bold uppercase text-devnav-foreground transition hover:brightness-110 sm:h-8 sm:w-auto sm:px-3.5 ${
+            pathname.startsWith("/developer") || pathname.startsWith("/doc") ? "ring-2 ring-foreground/70" : ""
           }`}
         >
           <span className="flex items-center gap-1">

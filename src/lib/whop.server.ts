@@ -34,6 +34,13 @@ async function whopCall<T>(path: string, init?: RequestInit): Promise<T> {
   return payload as T;
 }
 
+/** Whop caps product titles at 30 characters; drop "(monthly)"/"plan" words first. */
+export function whopTitle(planName: string): string {
+  const short = planName.replace(/\s*\([^)]*\)/g, "").replace(/\s+plan\b/gi, "").replace(/\s+/g, " ").trim();
+  const full = `MOVIE MAX ${short}`.trim();
+  return (full.length <= 30 ? full : short.length <= 30 ? short : short.slice(0, 30)).trim();
+}
+
 export type WhopCheckoutSession = {
   id: string;
   purchase_url?: string | null;
@@ -70,7 +77,7 @@ export async function createWhopCheckout(input: {
           currency,
           initial_price: price,
           billing_type: "one_time",
-          title: `MOVIE MAX ${input.planName}`.slice(0, 60),
+          title: whopTitle(input.planName),
         },
         redirect_url: input.redirectUrl,
         ...(input.email ? { customer_email: input.email } : {}),

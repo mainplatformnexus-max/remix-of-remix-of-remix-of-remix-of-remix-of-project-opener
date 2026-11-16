@@ -22,12 +22,25 @@ function originOf(request: Request) {
   return `${proto}://${host}`;
 }
 
+/** Keyless fallback used when the site runs outside Lovable hosting. */
+async function freeAnswer(request: Request, messages: import("ai").ModelMessage[], instructions: string) {
+  const { createOpenAI } = await import("@ai-sdk/openai");
+  const { streamText } = await import("ai");
+  const provider = createOpenAI({ baseURL: "https://text.pollinations.ai/openai", apiKey: "public" });
+  const result = streamText({
+    model: provider.chat("openai"),
+    system: instructions,
+    messages,
+    abortSignal: request.signal,
+  });
+  return result.toUIMessageStreamResponse();
+}
+
 export const Route = createFileRoute("/api/doc-chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const apiKey = process.env["LOVABLE_API_KEY"];
-        if (!apiKey) return Response.json({ error: "The assistant is not available on this server — use ChatGPT or Claude from the chat menu." }, { status: 503 });
 
         const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
         const now = Date.now();
@@ -62,6 +75,16 @@ ${parsed.page ? `The developer is currently reading the "${parsed.page}" page.` 
 ${doc}`;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const messages = await convertToModelMessages(parsed.messages as any);
+        if (!apiKey) {
+          // Independent deployments (own Cloudflare account) have no gateway key:
+          // answer through a free, keyless OpenAI-compatible service instead.
+          try {
+            return await freeAnswer(request, messages, instructions);
+          } catch (e) {
+            console.error("doc-chat free", e);
+            return Response.json({ error: "The assistant is busy — try again shortly." }, { status: 502 });
+          }
+        }
         try {
           return await createResponsesCall(
             request,

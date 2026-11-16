@@ -158,14 +158,74 @@ function DeveloperPage() {
           <div>
             <p className="text-[12px] font-black uppercase tracking-wider text-brand">Developer dashboard</p>
             <h1 className="mt-1 text-3xl font-black tracking-tight lg:text-4xl">Build with the MOVIE MAX API</h1>
-            <p className="mt-2 max-w-2xl text-[14px] text-muted-foreground">
-              Pick a plan, create your API key and start calling the API on our domain. Read the <Link to="/doc" className="font-bold text-brand underline underline-offset-2">developer guide</Link> for every endpoint.
-            </p>
           </div>
         </div>
 
+        {/* Plans */}
+        <section className="mt-6" id="plans">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-black">API plans</h2>
+              <p className="text-[13px] text-muted-foreground">Pay with mobile money, PayPal or card. Keys work as soon as payment is confirmed.</p>
+            </div>
+            <label className="inline-flex items-center gap-3 rounded-full bg-card px-4 py-2 ring-1 ring-border">
+              <span className={`text-[13px] font-bold ${billing === "monthly" ? "text-foreground" : "text-muted-foreground"}`}>Monthly</span>
+              <Switch checked={billing === "yearly"} onCheckedChange={(v) => setBilling(v ? "yearly" : "monthly")} aria-label="Yearly billing" />
+              <span className={`text-[13px] font-bold ${billing === "yearly" ? "text-foreground" : "text-muted-foreground"}`}>Yearly</span>
+              <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] font-black text-brand">Save {yearlySavingPercent()}%</span>
+            </label>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            {DEV_PLANS.map((p) => {
+              const price = planPriceUsd(p, billing);
+              const current = active?.id === p.id;
+              return (
+                <div key={p.id} className={`relative flex flex-col rounded-2xl bg-card p-5 ring-1 ${p.popular ? "ring-2 ring-brand" : "ring-border"}`}>
+                  {p.popular && <span className="absolute -top-3 left-5 rounded-full bg-brand px-2.5 py-0.5 text-[11px] font-black text-brand-foreground">Most popular</span>}
+                  <p className="text-[15px] font-black">{p.name}</p>
+                  {p.id === "api_premium" && <p className="text-[11px] font-black uppercase tracking-wider text-brand">Unlimited</p>}
+                  <p className="mt-3 text-3xl font-black tracking-tight">
+                    {usd(price)}
+                    <span className="text-[13px] font-bold text-muted-foreground"> /{billing === "yearly" ? "year" : "month"}</span>
+                  </p>
+                  {billing === "yearly" && <p className="text-[12px] font-semibold text-muted-foreground">{usd(price / 12)}/month, billed yearly</p>}
+                  <ul className="mt-4 flex-1 space-y-2">
+                    {p.features.map((f) => (
+                      <li key={f} className="flex gap-2 text-[13px] text-muted-foreground">
+                        <Check className="mt-0.5 size-4 shrink-0 text-brand" /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    onClick={() => buy(p)}
+                    className={`mt-5 h-11 rounded-xl text-[14px] font-black transition ${p.popular ? "bg-brand text-brand-foreground hover:opacity-90" : "bg-muted text-foreground hover:bg-accent"}`}
+                  >
+                    {current ? "Renew" : active ? "Switch to " + p.name : "Get " + p.name}
+                  </button>
+                  {current && <p className="mt-2 text-center text-[11px] font-bold text-brand">Your current plan</p>}
+                </div>
+              );
+            })}
+            <div className="flex flex-col rounded-2xl bg-gradient-to-br from-brand/15 to-transparent p-5 ring-1 ring-border sm:col-span-2 xl:col-span-1">
+              <p className="text-[15px] font-black">Custom</p>
+              <p className="mt-3 text-2xl font-black tracking-tight">Let's talk</p>
+              <p className="mt-2 flex-1 text-[13px] text-muted-foreground">Bigger volumes, dedicated limits, white-label or reseller deals — we'll build a plan around you.</p>
+              <div className="mt-5 space-y-2">
+                <a href={`mailto:${DEV_CONTACT.email}?subject=${encodeURIComponent("MOVIE MAX API custom plan")}`} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-muted text-[13px] font-black text-foreground hover:bg-accent">
+                  <Mail className="size-4" /> Email us
+                </a>
+                <a href={`${DEV_CONTACT.whatsappUrl}?text=${encodeURIComponent("Hi, I'm interested in a custom MOVIE MAX API plan.")}`} target="_blank" rel="noreferrer" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-whatsapp text-[13px] font-black text-whatsapp-foreground hover:opacity-90">
+                  <MessageCircle className="size-4" /> WhatsApp
+                </a>
+                <p className="pt-1 text-center text-[11.5px] text-muted-foreground">{DEV_CONTACT.email}<br />+256 795 592 662</p>
+              </div>
+            </div>
+          </div>
+        </section>
         {/* Status */}
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
+        <section className="mt-12 grid gap-4 md:grid-cols-3">
           <Stat icon={<Zap className="size-4" />} label="Plan">
             {!user ? (
               <span className="text-muted-foreground">Not signed in</span>
@@ -260,69 +320,9 @@ function DeveloperPage() {
           )}
         </section>
 
-        {/* Plans */}
-        <section className="mt-12" id="plans">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-black">API plans</h2>
-              <p className="text-[13px] text-muted-foreground">Pay with mobile money, PayPal or card. Keys work as soon as payment is confirmed.</p>
-            </div>
-            <label className="inline-flex items-center gap-3 rounded-full bg-card px-4 py-2 ring-1 ring-border">
-              <span className={`text-[13px] font-bold ${billing === "monthly" ? "text-foreground" : "text-muted-foreground"}`}>Monthly</span>
-              <Switch checked={billing === "yearly"} onCheckedChange={(v) => setBilling(v ? "yearly" : "monthly")} aria-label="Yearly billing" />
-              <span className={`text-[13px] font-bold ${billing === "yearly" ? "text-foreground" : "text-muted-foreground"}`}>Yearly</span>
-              <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] font-black text-brand">Save {yearlySavingPercent()}%</span>
-            </label>
-          </div>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            {DEV_PLANS.map((p) => {
-              const price = planPriceUsd(p, billing);
-              const current = active?.id === p.id;
-              return (
-                <div key={p.id} className={`relative flex flex-col rounded-2xl bg-card p-5 ring-1 ${p.popular ? "ring-2 ring-brand" : "ring-border"}`}>
-                  {p.popular && <span className="absolute -top-3 left-5 rounded-full bg-brand px-2.5 py-0.5 text-[11px] font-black text-brand-foreground">Most popular</span>}
-                  <p className="text-[15px] font-black">{p.name}</p>
-                  {p.id === "api_premium" && <p className="text-[11px] font-black uppercase tracking-wider text-brand">Unlimited</p>}
-                  <p className="mt-3 text-3xl font-black tracking-tight">
-                    {usd(price)}
-                    <span className="text-[13px] font-bold text-muted-foreground"> /{billing === "yearly" ? "year" : "month"}</span>
-                  </p>
-                  {billing === "yearly" && <p className="text-[12px] font-semibold text-muted-foreground">{usd(price / 12)}/month, billed yearly</p>}
-                  <ul className="mt-4 flex-1 space-y-2">
-                    {p.features.map((f) => (
-                      <li key={f} className="flex gap-2 text-[13px] text-muted-foreground">
-                        <Check className="mt-0.5 size-4 shrink-0 text-brand" /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    type="button"
-                    onClick={() => buy(p)}
-                    className={`mt-5 h-11 rounded-xl text-[14px] font-black transition ${p.popular ? "bg-brand text-brand-foreground hover:opacity-90" : "bg-muted text-foreground hover:bg-accent"}`}
-                  >
-                    {current ? "Renew" : active ? "Switch to " + p.name : "Get " + p.name}
-                  </button>
-                  {current && <p className="mt-2 text-center text-[11px] font-bold text-brand">Your current plan</p>}
-                </div>
-              );
-            })}
-            <div className="flex flex-col rounded-2xl bg-gradient-to-br from-brand/15 to-transparent p-5 ring-1 ring-border sm:col-span-2 xl:col-span-1">
-              <p className="text-[15px] font-black">Custom</p>
-              <p className="mt-3 text-2xl font-black tracking-tight">Let's talk</p>
-              <p className="mt-2 flex-1 text-[13px] text-muted-foreground">Bigger volumes, dedicated limits, white-label or reseller deals — we'll build a plan around you.</p>
-              <div className="mt-5 space-y-2">
-                <a href={`mailto:${DEV_CONTACT.email}?subject=${encodeURIComponent("MOVIE MAX API custom plan")}`} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-muted text-[13px] font-black text-foreground hover:bg-accent">
-                  <Mail className="size-4" /> Email us
-                </a>
-                <a href={`${DEV_CONTACT.whatsappUrl}?text=${encodeURIComponent("Hi, I'm interested in a custom MOVIE MAX API plan.")}`} target="_blank" rel="noreferrer" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-whatsapp text-[13px] font-black text-whatsapp-foreground hover:opacity-90">
-                  <MessageCircle className="size-4" /> WhatsApp
-                </a>
-                <p className="pt-1 text-center text-[11.5px] text-muted-foreground">{DEV_CONTACT.email}<br />+256 795 592 662</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <p className="mt-8 max-w-2xl text-[14px] text-muted-foreground">
+          Pick a plan, create your API key and start calling the API on our domain. Read the <Link to="/doc" className="font-bold text-brand underline underline-offset-2">developer guide</Link> for every endpoint.
+        </p>
       </main>
 
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} />

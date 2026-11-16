@@ -28,6 +28,7 @@ const SUGGESTIONS = [
 
 export default function DocChat({ origin, page, onClose }: { origin: string; page: string; onClose?: (() => void) | undefined }) {
   const [agent, setAgent] = useState<(typeof AGENTS)[number]["id"]>("moviemax");
+  const [draft, setDraft] = useState("");
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/doc-chat", body: { page } }), [page]);
   const { messages, sendMessage, status, stop, setMessages } = useChat({
     transport,
@@ -46,10 +47,9 @@ export default function DocChat({ origin, page, onClose }: { origin: string; pag
   const ask = (text: string) => {
     const q = text.trim();
     if (!q) return;
-    const ext = AGENTS.find((a) => a.id === agent);
-    if (ext && "url" in ext) {
-      const prompt = `I'm building an app with the MOVIE MAX Content API. Read the full developer guide at ${origin}/doc.md (base address ${origin}/api/public/v1) and answer: ${q}`;
-      window.open(ext.url(prompt), "_blank", "noopener");
+    const href = extHref(q);
+    if (href) {
+      window.open(href, "_blank", "noopener");
       return;
     }
     if (busy) return;
@@ -57,6 +57,14 @@ export default function DocChat({ origin, page, onClose }: { origin: string; pag
   };
 
   const onSubmit = (m: PromptInputMessage) => ask(m.text ?? "");
+  const ext = AGENTS.find((a) => a.id === agent);
+  /** Link that opens the outside agent with the question and the full guide address. */
+  function extHref(q: string): string | null {
+    const a = AGENTS.find((x) => x.id === agent);
+    if (!a || !("url" in a)) return null;
+    const prompt = `I'm building an app with the MOVIE MAX Content API. Read the full developer guide at ${origin}/doc.md (base address ${origin}/api/public/v1) and answer: ${q.trim() || "How do I get started?"}`;
+    return a.url(prompt);
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-card">
@@ -112,11 +120,17 @@ export default function DocChat({ origin, page, onClose }: { origin: string; pag
                     : `Your question opens in ${AGENTS.find((a) => a.id === agent)?.label} with this guide attached — no setup.`}
                 </p>
                 <div className="grid gap-2">
-                  {SUGGESTIONS.map((s) => (
-                    <button key={s} type="button" onClick={() => ask(s)} className="rounded-xl bg-muted px-3 py-2 text-left text-[13px] font-semibold text-foreground transition hover:bg-accent">
-                      {s}
-                    </button>
-                  ))}
+                  {SUGGESTIONS.map((s) =>
+                    ext && "url" in ext ? (
+                      <a key={s} href={extHref(s) ?? "#"} target="_blank" rel="noopener" className="rounded-xl bg-muted px-3 py-2 text-left text-[13px] font-semibold text-foreground transition hover:bg-accent">
+                        {s}
+                      </a>
+                    ) : (
+                      <button key={s} type="button" onClick={() => ask(s)} className="rounded-xl bg-muted px-3 py-2 text-left text-[13px] font-semibold text-foreground transition hover:bg-accent">
+                        {s}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
             </ConversationEmptyState>
@@ -143,12 +157,44 @@ export default function DocChat({ origin, page, onClose }: { origin: string; pag
       </Conversation>
 
       <div className="border-t border-border p-3">
-        <PromptInput onSubmit={onSubmit} className="bg-background">
-          <PromptInputTextarea placeholder={agent === "moviemax" ? "Ask about endpoints, keys, examples…" : `Ask ${AGENTS.find((a) => a.id === agent)?.label}…`} className="min-h-12 text-[13.5px]" />
-          <PromptInputFooter className="justify-end">
-            <PromptInputSubmit status={agent === "moviemax" ? status : "ready"} onStop={stop} />
-          </PromptInputFooter>
-        </PromptInput>
+        {ext && "url" in ext ? (
+          <div className="rounded-xl bg-background p-2 ring-1 ring-border">
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (draft.trim()) {
+                    ask(draft);
+                    setDraft("");
+                  }
+                }
+              }}
+              placeholder={`Ask ${ext.label}…`}
+              rows={2}
+              className="min-h-12 w-full resize-none bg-transparent px-1 text-[13.5px] text-foreground outline-none placeholder:text-muted-foreground"
+            />
+            <div className="flex justify-end">
+              <a
+                href={extHref(draft) ?? "#"}
+                target="_blank"
+                rel="noopener"
+                onClick={() => window.setTimeout(() => setDraft(""), 300)}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-foreground px-3 text-[12.5px] font-bold text-background transition hover:opacity-90"
+              >
+                Ask in {ext.label} <ExternalLink className="size-3.5" />
+              </a>
+            </div>
+          </div>
+        ) : (
+          <PromptInput onSubmit={onSubmit} className="bg-background">
+            <PromptInputTextarea placeholder="Ask about endpoints, keys, examples…" className="min-h-12 text-[13.5px]" />
+            <PromptInputFooter className="justify-end">
+              <PromptInputSubmit status={status} onStop={stop} />
+            </PromptInputFooter>
+          </PromptInput>
+        )}
       </div>
     </div>
   );
