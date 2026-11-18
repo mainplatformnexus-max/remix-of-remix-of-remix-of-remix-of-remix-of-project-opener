@@ -30,17 +30,19 @@ export function WhatsAppPrompt() {
       return;
     }
 
-    const tourFinished = (() => {
+    // The tour only runs when a visitor starts it, so show right away unless it is in progress.
+    const tourInProgress = (() => {
       try {
         const saved = JSON.parse(localStorage.getItem(TOUR_KEY) ?? "null") as {
+          active?: boolean;
           done?: boolean;
         } | null;
-        return saved?.done === true;
+        return saved?.active === true && saved?.done !== true;
       } catch {
         return false;
       }
     })();
-    if (tourFinished) setOpen(true);
+    if (!tourInProgress) setOpen(true);
 
     const onTourState = (event: Event) => {
       const active = (event as CustomEvent<{ active?: boolean }>).detail?.active;
