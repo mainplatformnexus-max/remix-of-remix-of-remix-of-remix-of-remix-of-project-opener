@@ -115,7 +115,7 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
         </Button>
 
         <a
-          href="https://moviemaxtv.luofilm.site/"
+          href="https://livetv.luofilm.site/"
           target="_blank"
           rel="noopener"
           aria-label="Live TV"

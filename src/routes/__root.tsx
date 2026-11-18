@@ -16,6 +16,7 @@ import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AuthProvider } from "@/hooks/useAuth";
 import { DevToolsGuard } from "@/components/security/DevToolsGuard";
 import { WhatsAppPrompt } from "@/components/youku/WhatsAppPrompt";
+import { MovieMaxTvPrompt } from "@/components/youku/MovieMaxTvPrompt";
 import { ReferralTracker } from "@/components/youku/ReferralTracker";
 import { DownloadTour } from "@/components/luo/DownloadTour";
 import { LiveSync } from "@/components/LiveSync";
@@ -178,6 +179,7 @@ function RootComponent() {
       </AuthProvider>
       <DevToolsGuard />
       <WhatsAppPrompt />
+      <MovieMaxTvPrompt />
       <DownloadTour />
       <Toaster position="top-center" richColors />
     </QueryClientProvider>

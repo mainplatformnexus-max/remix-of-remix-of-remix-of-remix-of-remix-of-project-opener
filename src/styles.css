@@ -67,6 +67,10 @@
   --color-devnav: var(--devnav);
   --color-devnav-foreground: var(--devnav-foreground);
   --color-livetv: var(--livetv);
+  --color-tvpromo: var(--tvpromo);
+  --color-tvpromo-foreground: var(--tvpromo-foreground);
+  --color-tvpromo-accent: var(--tvpromo-accent);
+  --color-tvpromo-accent-foreground: var(--tvpromo-accent-foreground);
   --color-livetv-foreground: var(--livetv-foreground);
   --color-vip: var(--vip);
   --color-vip-foreground: var(--vip-foreground);
@@ -114,6 +118,10 @@
   --devnav: oklch(0.7 0.15 185);
   --devnav-foreground: oklch(0.99 0 0);
   --livetv: oklch(0.6 0.22 25);
+  --tvpromo: oklch(0.62 0.16 240);
+  --tvpromo-foreground: oklch(0.99 0 0);
+  --tvpromo-accent: oklch(0.8 0.16 70);
+  --tvpromo-accent-foreground: oklch(0.25 0.06 255);
   --livetv-foreground: oklch(0.99 0 0);
   --vip: oklch(0.83 0.14 88);
   --vip-foreground: oklch(0.22 0.05 60);
@@ -711,3 +719,6 @@
 .api-doc--page pre { background: var(--muted); }
 .api-doc--page a { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
 .api-doc ol { list-style: decimal; padding-left: 1.4rem; margin: 0.6rem 0; color: var(--muted-foreground); }
+
+.tv-promo-timer { animation: wa-exit-bar 9000ms linear forwards; }
+@media (prefers-reduced-motion: reduce) { .tv-promo-timer { animation: none; } }
