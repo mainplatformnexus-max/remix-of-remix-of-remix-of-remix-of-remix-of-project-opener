@@ -101,9 +101,9 @@ export function TopBar() {
   );
 
   return (
-    <header className="pointer-events-auto fixed inset-x-0 top-0 z-50 flex flex-col gap-1.5 px-3 pb-1 pt-1.5 lg:h-14 lg:flex-row lg:items-center lg:gap-4 lg:py-0 lg:pl-[calc(var(--sidebar-w)+20px)]">
+    <header className="pointer-events-auto fixed inset-x-0 top-0 z-50 flex flex-col gap-1.5 px-0 pb-1 pt-0 lg:h-14 lg:flex-row lg:items-center lg:gap-4 lg:px-3 lg:pb-1 lg:pt-1.5 lg:pl-[calc(var(--sidebar-w)+20px)]">
       {/* Mobile: one row — brand + nav + search all inside the float. */}
-      <div className="pointer-events-auto flex min-w-0 justify-center lg:hidden">
+      <div className="pointer-events-auto flex w-full min-w-0 justify-center lg:hidden">
         <FloatNav onSearch={() => setSearchOpen((v) => !v)} />
       </div>
 
