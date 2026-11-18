@@ -4,42 +4,48 @@ import keyArt from "@/assets/moviemax-tv-key-art.jpg";
 import movieMaxLogo from "@/assets/moviemax-logo.png";
 import tvApk from "@/assets/MovieMax-TV.apk.asset.json";
 import { WHATSAPP_PROMPT_CLOSED_EVENT } from "@/components/youku/WhatsAppPrompt";
+import { TOUR_STATE_EVENT } from "@/components/luo/DownloadTour";
 
 export const MOVIEMAX_TV_URL = "https://livetv.luofilm.site/";
 export const MOVIEMAX_TV_APK = tvApk.url;
-const CLOSED_KEY = "luofilm:moviemax-tv-prompt-closed";
+const FIRST_SHOW_MS = 2500;
 const SHOW_DELAY_MS = 1000;
 const AUTO_EXIT_MS = 9000;
 
-/** Floating MOVIE MAX TV introduction, shown once per visit after the WhatsApp prompt. */
+/** Floating MOVIE MAX TV introduction, shown on every visit, after the tour and WhatsApp prompt. */
 export function MovieMaxTvPrompt() {
   const [open, setOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     let timer: number | undefined;
-    const show = () => {
-      try {
-        if (sessionStorage.getItem(CLOSED_KEY) === "1") return;
-      } catch {
-        /* storage unavailable */
-      }
+    let tourActive = false;
+    let shown = false;
+    const show = (delay: number) => {
       window.clearTimeout(timer);
-      timer = window.setTimeout(() => setOpen(true), SHOW_DELAY_MS);
+      timer = window.setTimeout(() => {
+        if (shown || tourActive || document.querySelector(".wa-prompt")) return;
+        shown = true;
+        setOpen(true);
+      }, delay);
     };
-    window.addEventListener(WHATSAPP_PROMPT_CLOSED_EVENT, show);
+    const onWhatsAppClosed = () => show(SHOW_DELAY_MS);
+    const onTour = (event: Event) => {
+      tourActive = (event as CustomEvent<{ active?: boolean }>).detail?.active === true;
+      if (!tourActive) show(SHOW_DELAY_MS);
+    };
+    window.addEventListener(WHATSAPP_PROMPT_CLOSED_EVENT, onWhatsAppClosed);
+    window.addEventListener(TOUR_STATE_EVENT, onTour);
+    // Shows on every visit; waits while the tour or the WhatsApp prompt is on screen.
+    show(FIRST_SHOW_MS);
     return () => {
-      window.removeEventListener(WHATSAPP_PROMPT_CLOSED_EVENT, show);
+      window.removeEventListener(WHATSAPP_PROMPT_CLOSED_EVENT, onWhatsAppClosed);
+      window.removeEventListener(TOUR_STATE_EVENT, onTour);
       window.clearTimeout(timer);
     };
   }, []);
 
   const close = () => {
-    try {
-      sessionStorage.setItem(CLOSED_KEY, "1");
-    } catch {
-      /* storage unavailable */
-    }
     setLeaving(true);
     window.setTimeout(() => setOpen(false), 400);
   };
