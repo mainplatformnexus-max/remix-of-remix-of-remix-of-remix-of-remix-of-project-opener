@@ -55,9 +55,9 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
   return (
     <>
       <div className="search-glow w-full min-w-0 max-w-full rounded-b-2xl p-[1.5px] sm:rounded-full lg:w-auto lg:shrink-0">
-      <div className="flex min-w-0 items-center gap-1.5 rounded-b-2xl bg-background/85 px-2 py-1.5 backdrop-blur-xl sm:justify-between sm:gap-1 sm:rounded-full sm:px-1 sm:py-1 lg:justify-start">
+      <div className="flex min-w-0 items-center justify-between gap-1 max-[380px]:gap-0.5 rounded-b-2xl bg-background/85 px-1.5 max-[380px]:px-1 py-1.5 backdrop-blur-xl sm:gap-1 sm:rounded-full sm:px-1 sm:py-1 lg:justify-start">
         {/* Brand stays inside the floating navigation on every screen. */}
-         <Link to="/" aria-label="MOVIE MAX home" className="flex size-10 min-w-0 shrink-0 items-center justify-center gap-1 justify-self-center sm:h-8 sm:w-auto sm:gap-1.5 sm:px-1">
+         <Link to="/" aria-label="MOVIE MAX home" className="flex size-10 max-[380px]:size-9 max-[340px]:size-8 min-w-0 shrink-0 items-center justify-center gap-1 sm:h-8 sm:w-auto sm:gap-1.5 sm:px-1">
            <img src={logoAsset.url} alt="" className="size-8 shrink-0 object-contain" />
            <span className="brand-logo-text hidden whitespace-nowrap text-[12px] font-extrabold leading-none sm:inline sm:text-[15px]">
              MOVIE MAX
@@ -97,7 +97,7 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
             type="button"
             aria-label="Search"
             onClick={onSearch}
-            className="grid size-10 shrink-0 place-items-center justify-self-center rounded-full bg-foreground/12 p-0 text-foreground transition hover:bg-foreground/25 sm:size-8 lg:hidden"
+            className="grid size-10 max-[380px]:size-9 max-[340px]:size-8 shrink-0 place-items-center rounded-full bg-foreground/12 p-0 text-foreground transition hover:bg-foreground/25 sm:size-8 lg:hidden"
           >
             <Icon3D name="search" className="size-4" />
           </Button>
@@ -106,7 +106,7 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
         <Button
           type="button"
           onClick={openSubscribe}
-          className="subscribe-original col-span-2 grid h-10 min-w-0 w-full shrink-0 place-items-center rounded-full px-1.5 text-[11px] font-bold uppercase tracking-normal text-vip-foreground transition hover:brightness-105 sm:h-8 sm:w-auto sm:px-3.5 sm:text-[12px]"
+          className="subscribe-original grid h-10 max-[380px]:h-9 max-[340px]:h-8 shrink-0 place-items-center rounded-full px-2 max-[380px]:px-1.5 max-[380px]:text-[10px] max-[340px]:px-1 max-[340px]:text-[9px] text-[11px] font-bold uppercase tracking-normal text-vip-foreground transition hover:brightness-105 sm:h-8 sm:px-3.5 sm:text-[12px]"
         >
           <span className="flex items-center gap-1">
             <Crown className="size-3.5" />
@@ -119,7 +119,7 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
           target="_blank"
           rel="noopener"
           aria-label="Live TV"
-          className="grid size-10 shrink-0 place-items-center justify-self-center rounded-full bg-livetv p-0 text-[12px] font-bold uppercase text-livetv-foreground transition hover:brightness-110 sm:h-8 sm:w-auto sm:px-3.5"
+          className="grid size-10 max-[380px]:size-9 max-[340px]:size-8 shrink-0 place-items-center rounded-full bg-livetv p-0 text-[12px] font-bold uppercase text-livetv-foreground transition hover:brightness-110 sm:h-8 sm:w-auto sm:px-3.5"
         >
           <span className="flex items-center gap-1">
             <Tv className="size-4 sm:size-3.5" />
@@ -130,7 +130,7 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
         <Link
           to="/developer"
           aria-label="Developer dashboard"
-          className={`grid size-10 shrink-0 place-items-center justify-self-center rounded-full bg-devnav p-0 text-[12px] font-bold uppercase text-devnav-foreground transition hover:brightness-110 sm:h-8 sm:w-auto sm:px-3.5 ${
+          className={`grid size-10 max-[380px]:size-9 max-[340px]:size-8 shrink-0 place-items-center rounded-full bg-devnav p-0 text-[12px] font-bold uppercase text-devnav-foreground transition hover:brightness-110 sm:h-8 sm:w-auto sm:px-3.5 ${
             pathname.startsWith("/developer") || pathname.startsWith("/doc") ? "ring-2 ring-foreground/70" : ""
           }`}
         >
@@ -141,12 +141,12 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
         </Link>
 
         {user ? (
-          <div className="relative shrink-0 justify-self-center">
+          <div className="relative shrink-0">
             <Button variant="ghost"
               type="button"
               onClick={() => setMenu((v) => !v)}
               aria-label="Account"
-              className="grid size-10 place-items-center rounded-full bg-foreground/15 p-0 text-foreground transition hover:bg-foreground/25 sm:size-8"
+              className="grid size-10 max-[380px]:size-9 max-[340px]:size-8 place-items-center rounded-full bg-foreground/15 p-0 text-foreground transition hover:bg-foreground/25 sm:size-8"
             >
               <UserIcon className="size-4" />
             </Button>
@@ -190,7 +190,7 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
             type="button"
             onClick={() => setAuthOpen(true)}
             aria-label="Login"
-            className="grid size-10 shrink-0 place-items-center justify-self-center rounded-full bg-foreground p-0 text-[12px] font-black uppercase tracking-wide text-background transition hover:opacity-90 sm:h-8 sm:w-auto sm:px-3.5"
+            className="grid size-10 max-[380px]:size-9 max-[340px]:size-8 shrink-0 place-items-center rounded-full bg-foreground p-0 text-[12px] font-black uppercase tracking-wide text-background transition hover:opacity-90 sm:h-8 sm:w-auto sm:px-3.5"
           >
             <span className="flex items-center gap-1">
               <LogIn className="size-3.5" />
